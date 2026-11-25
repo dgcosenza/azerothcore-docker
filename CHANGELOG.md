@@ -7,14 +7,18 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Mai
 ---
 <!-- changelog:auto -->
 
-## [17.0.0-dev-66299e6] — 2026-11-25
+## [17.0.0-dev-5aa4795] — 2026-11-25
 
 ### Automated Daily Build
-- Verified components: AzerothCore `17.0.0-dev (66299e6)`, Modules `mod-ale (84b85cc)`, Targets `authserver, worldserver, db-import`, MySQL Client `Oracle MySQL 8.4 LTS`, Base OS `Debian 13.8 (trixie-slim)`.
+- Verified components: AzerothCore `17.0.0-dev (5aa4795)`, Modules `mod-ale (84b85cc)`, Targets `authserver, worldserver, db-import`, MySQL Client `Oracle MySQL 8.4 LTS`, Base OS `Debian 13.8 (trixie-slim)`.
 - Architectures verified: `linux/amd64` (native smoke tests + Dive efficiency gate).
-- Upstream status: no new upstream release since previous build; refreshed base OS and dependencies.
+- Upstream changes:
+  - AzerothCore master advanced from 66299e6 to 5aa4795.
+  - 6142835: fix(DB/Creature): Make Bountiful Table Hostess immune to PCs and NPCs (#28571)
+  - c846d32: fix(Scripts/TheEye): Skip Al'ar Berserk on death (#28570)
+  - 5aa4795: chore(DB): import pending files
 - Vulnerability gate: **0 fixable Critical/High** in Trivy and Grype (SBOM scan) (13 upstream-unfixed).
-- Published multi-arch digest (Docker Hub + GHCR): `dgcosenza/ac-wotlk-worldserver@sha256:df830f02f48720d3ab8ab217f93b5543b39ef4e787605dff735ae4120067967d` (Cosign OIDC signed + SPDX/CycloneDX SBOM + SLSA L3 provenance).
+- Published multi-arch digest (Docker Hub + GHCR): `dgcosenza/ac-wotlk-worldserver@sha256:118300ca29708132dbfe9709faa90788536334f5a3bce37a10649f87d9777581` (Cosign OIDC signed + SPDX/CycloneDX SBOM + SLSA L3 provenance).
 ---
 
 ## [17.0.0-dev-3a25f72] — 2026-11-24

@@ -38,7 +38,7 @@ Source-built **AzerothCore WotLK** container images (`authserver`, `worldserver`
 <!-- versions:start -->
 | Component | Resolved Version |
 | --- | --- |
-| AzerothCore | `17.0.0-dev (66299e6)` |
+| AzerothCore | `17.0.0-dev (5aa4795)` |
 | Modules | `mod-ale (84b85cc)` |
 | Targets | `authserver, worldserver, db-import` |
 | MySQL Client | `Oracle MySQL 8.4 LTS` |
@@ -46,10 +46,16 @@ Source-built **AzerothCore WotLK** container images (`authserver`, `worldserver`
 | Architectures | `linux/amd64` |
 | Uncompressed size (per arch) | `amd64: 200.3 MB` |
 | Last verified build (UTC) | `2026-11-25` |
-| Published multi-arch digest | `dgcosenza/ac-wotlk-worldserver@sha256:df830f02f48720d3ab8ab217f93b5543b39ef4e787605dff735ae4120067967d` |
-| GHCR mirror | `ghcr.io/dgcosenza/ac-wotlk-worldserver@sha256:df830f02f48720d3ab8ab217f93b5543b39ef4e787605dff735ae4120067967d` |
+| Published multi-arch digest | `dgcosenza/ac-wotlk-worldserver@sha256:118300ca29708132dbfe9709faa90788536334f5a3bce37a10649f87d9777581` |
+| GHCR mirror | `ghcr.io/dgcosenza/ac-wotlk-worldserver@sha256:118300ca29708132dbfe9709faa90788536334f5a3bce37a10649f87d9777581` |
 | Supply chain | Cosign OIDC signed + SPDX & CycloneDX SBOM attestations + SLSA Build L3 provenance |
 | Security gate (Trivy + Grype on SBOM) | **0 fixable Critical/High** (13 upstream-unfixed) |
+
+**Recent upstream changes:**
+- AzerothCore master advanced from 66299e6 to 5aa4795.
+- 6142835: fix(DB/Creature): Make Bountiful Table Hostess immune to PCs and NPCs (#28571)
+- c846d32: fix(Scripts/TheEye): Skip Al'ar Berserk on death (#28570)
+- 5aa4795: chore(DB): import pending files
 <!-- versions:end -->
 
 ---
