@@ -5,7 +5,7 @@
 [![Upstream License: GPL-2.0-only](https://img.shields.io/badge/upstream-GPL--2.0--only-green.svg)](https://github.com/azerothcore/azerothcore-wotlk/blob/master/LICENSE)
 [![Signed with Cosign](https://img.shields.io/badge/signed-cosign%20OIDC-blueviolet.svg)](#supply-chain-verification)
 [![SLSA Level 3](https://img.shields.io/badge/SLSA-Level%203-brightgreen.svg)](#supply-chain-verification)
-[![Architectures](https://img.shields.io/badge/arch-amd64%20%7C%20arm64-informational.svg)](#supported-architectures)
+[![Architectures](https://img.shields.io/badge/arch-amd64-informational.svg)](#supported-architectures)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/dgcosenza/azerothcore-docker/badge)](https://scorecard.dev/viewer/?uri=github.com/dgcosenza/azerothcore-docker)
 [![Docker Pulls](https://img.shields.io/docker/pulls/dgcosenza/ac-wotlk-worldserver)](https://hub.docker.com/r/dgcosenza/ac-wotlk-worldserver)
 [![Docker Image Size](https://img.shields.io/docker/image-size/dgcosenza/ac-wotlk-worldserver/latest)](https://hub.docker.com/r/dgcosenza/ac-wotlk-worldserver)
@@ -72,9 +72,9 @@ image: dgcosenza/ac-wotlk-worldserver:latest@sha256:<digest>
 | Architecture | Status | Verification |
 | --- | --- | --- |
 | `linux/amd64` | **Published & natively tested** | Built, smoke-tested, Dive-gated, Syft/Trivy/Grype-scanned, and Cosign-signed on native x86_64 CI runners. |
-| `linux/arm64` | **Published & natively tested** | Built, smoke-tested, Dive-gated, Syft/Trivy/Grype-scanned, and Cosign-signed on native ARM64 CI runners. |
+| `linux/arm64` | **Not supported (upstream limitation)** | Upstream `acore/ac-wotlk-*` images and Oracle's official Debian 13 (`trixie`) MySQL 8.4 LTS APT repository (`libmysqlclient-dev` / `libmysqlclient24` required by AzerothCore's C API) ship `amd64` binaries only. |
 
-Identical multi-arch OCI manifest digests are published to **Docker Hub** and **GHCR** (`ghcr.io/dgcosenza/*`), accompanied by automated signed [GitHub Releases](https://github.com/dgcosenza/azerothcore-docker/releases).
+Identical signed OCI digests are published to **Docker Hub** and **GHCR** (`ghcr.io/dgcosenza/ac-wotlk-*`), accompanied by automated signed [GitHub Releases](https://github.com/dgcosenza/azerothcore-docker/releases).
 ---
 
 ## Quick Start
@@ -200,7 +200,7 @@ done
 
 ## Design Decisions
 
-- **Debian 13 (`trixie-slim`) with Clang 19 + Ninja + static Boost:** Replaces Ubuntu 24.04 upstream base with a lean Debian 13 runtime (`libmariadb3`, `libreadline8t64`, `libicu76`) tracked by daily Debian Security updates while preserving `mysql`/`mysqladmin` compatibility for wait scripts.
+- **Debian 13 (`trixie-slim`) with Clang 19 + Ninja + static Boost + Oracle MySQL 8.4 LTS client:** Replaces the Ubuntu 24.04 upstream base with a lean Debian 13 runtime (`libmysqlclient24`, `mysql-client`, `libreadline8t64`, `libicu76`) verified against Oracle's official APT signing key while preserving full `mysql`/`mysqladmin` wait-script and C API compatibility.
 - **Single multi-target Dockerfile:** Compiles AzerothCore once in the `build` stage and packages `authserver`, `worldserver`, and `db-import` cleanly from the exact same revision.
 
 ---

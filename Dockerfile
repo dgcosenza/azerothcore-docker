@@ -4,8 +4,9 @@ ARG DEBIAN_BASE=debian:trixie-slim@sha256:8aa5a7bf5a1955bddbe7d74fcdd0b91ab30e74
 ARG AZEROTHCORE_COMMIT=3a25f726ed68c5f2c361455ee9cd985fe929c3e9
 ARG AZEROTHCORE_VERSION=17.0.0-dev
 
-# ---- Stage 0: shared directory skeleton ----
+# ---- Stage 0: shared directory skeleton + GPG-verified Oracle MySQL 8.4 LTS APT repo ----
 FROM ${DEBIAN_BASE} AS skeleton
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 ARG TZ=Etc/UTC
 ARG DEBIAN_FRONTEND=noninteractive
@@ -13,12 +14,22 @@ ARG DEBIAN_FRONTEND=noninteractive
 ENV TZ=${TZ} \
     AC_FORCE_CREATE_DB=1
 
-RUN apt-get update \
-    && apt-get -y upgrade \
-    && apt-get install -y --no-install-recommends ca-certificates tzdata \
-    && ln -snf "/usr/share/zoneinfo/${TZ}" /etc/localtime \
-    && echo "${TZ}" > /etc/timezone \
-    && mkdir -p \
+RUN set -eux; \
+    apt-get update; \
+    apt-get -y upgrade; \
+    apt-get install -y --no-install-recommends ca-certificates curl gpg tzdata; \
+    install -d -m 0755 /etc/apt/keyrings; \
+    install -d -m 0700 /tmp/gnupg; \
+    curl -fsSL https://repo.mysql.com/RPM-GPG-KEY-mysql-2025 -o /etc/apt/keyrings/mysql.asc; \
+    FPR="$(gpg --homedir /tmp/gnupg --show-keys --with-colons /etc/apt/keyrings/mysql.asc | awk -F: '/^fpr:/{print $10; exit}')"; \
+    test "${FPR}" = "BCA43417C3B485DD128EC6D4B7B3B788A8D3785C"; \
+    rm -rf /tmp/gnupg; \
+    printf 'Types: deb\nURIs: https://repo.mysql.com/apt/debian\nSuites: trixie\nComponents: mysql-8.4-lts\nSigned-By: /etc/apt/keyrings/mysql.asc\n' \
+      > /etc/apt/sources.list.d/mysql.sources; \
+    apt-get purge -y --auto-remove curl gpg; \
+    ln -snf "/usr/share/zoneinfo/${TZ}" /etc/localtime; \
+    echo "${TZ}" > /etc/timezone; \
+    mkdir -p \
       /azerothcore/bin \
       /azerothcore/data \
       /azerothcore/deps \
@@ -34,14 +45,15 @@ RUN apt-get update \
       /azerothcore/env/ref/etc \
       /azerothcore/modules \
       /azerothcore/src \
-      /azerothcore/build \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+      /azerothcore/build; \
+    apt-get clean; \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 WORKDIR /azerothcore
 
 # ---- Stage 1: compile AzerothCore (authserver, worldserver, dbimport) on Debian 13 ----
 FROM skeleton AS build
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 ARG AZEROTHCORE_COMMIT
 ARG CTYPE="RelWithDebInfo"
@@ -52,12 +64,11 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 RUN set -eux; \
     apt-get update; \
-    apt-get -y upgrade; \
     apt-get install -y --no-install-recommends \
       build-essential ccache clang cmake cmake-data curl \
-      default-libmysqlclient-dev default-mysql-client git libboost-all-dev \
-      libbz2-dev liblzma-dev libncurses-dev libreadline-dev libssl-dev \
-      libtool ninja-build openssl pkg-config unzip zlib1g-dev; \
+      git libboost-all-dev libbz2-dev liblzma-dev libmysqlclient-dev \
+      libncurses-dev libreadline-dev libssl-dev libtool mysql-client \
+      ninja-build openssl pkg-config unzip zlib1g-dev; \
     rm -rf /var/lib/apt/lists/*; \
     git init /tmp/ac-src; \
     git -C /tmp/ac-src remote add origin https://github.com/azerothcore/azerothcore-wotlk.git; \
@@ -113,10 +124,9 @@ ENV ACORE_COMPONENT=undefined \
 
 RUN set -eux; \
     apt-get update; \
-    apt-get -y upgrade; \
     apt-get install -y --no-install-recommends \
-      bash default-mysql-client gettext-base libbz2-1.0 libicu76 \
-      liblzma5 libmariadb3 libncurses6 libreadline8t64 libssl3t64 \
+      bash gettext-base libbz2-1.0 libicu76 liblzma5 libmysqlclient24 \
+      libncurses6 libreadline8t64 libssl3t64 mysql-client \
       passwd procps tini zlib1g; \
     groupadd --gid "${GROUP_ID}" "${DOCKER_USER}"; \
     useradd --uid "${USER_ID}" --gid "${GROUP_ID}" --create-home \
@@ -156,7 +166,7 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=3 \
 CMD ["authserver"]
 
 LABEL org.opencontainers.image.title="AzerothCore WotLK Authserver (Debian 13)" \
-      org.opencontainers.image.description="Source-built multi-arch AzerothCore WotLK authserver on Debian 13 (trixie-slim), maintained by Daniel G. Cosenza from FNX Labs." \
+      org.opencontainers.image.description="Source-built AzerothCore WotLK authserver on Debian 13 (trixie-slim, linux/amd64), maintained by Daniel G. Cosenza from FNX Labs." \
       org.opencontainers.image.url="https://hub.docker.com/r/dgcosenza/ac-wotlk-authserver" \
       org.opencontainers.image.source="${IMAGE_SOURCE}" \
       org.opencontainers.image.documentation="${IMAGE_SOURCE}#readme" \
@@ -195,7 +205,7 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=300s --retries=3 \
 CMD ["worldserver"]
 
 LABEL org.opencontainers.image.title="AzerothCore WotLK Worldserver (Debian 13)" \
-      org.opencontainers.image.description="Source-built multi-arch AzerothCore WotLK worldserver on Debian 13 (trixie-slim), maintained by Daniel G. Cosenza from FNX Labs." \
+      org.opencontainers.image.description="Source-built AzerothCore WotLK worldserver on Debian 13 (trixie-slim, linux/amd64), maintained by Daniel G. Cosenza from FNX Labs." \
       org.opencontainers.image.url="https://hub.docker.com/r/dgcosenza/ac-wotlk-worldserver" \
       org.opencontainers.image.source="${IMAGE_SOURCE}" \
       org.opencontainers.image.documentation="${IMAGE_SOURCE}#readme" \
@@ -227,7 +237,7 @@ COPY --from=build --chown=1000:1000 /azerothcore/env/dist/bin/dbimport /azerothc
 CMD ["/azerothcore/env/dist/bin/dbimport"]
 
 LABEL org.opencontainers.image.title="AzerothCore WotLK DB Import (Debian 13)" \
-      org.opencontainers.image.description="Source-built multi-arch AzerothCore WotLK database import tool on Debian 13 (trixie-slim), maintained by Daniel G. Cosenza from FNX Labs." \
+      org.opencontainers.image.description="Source-built AzerothCore WotLK database import tool on Debian 13 (trixie-slim, linux/amd64), maintained by Daniel G. Cosenza from FNX Labs." \
       org.opencontainers.image.url="https://hub.docker.com/r/dgcosenza/ac-wotlk-db-import" \
       org.opencontainers.image.source="${IMAGE_SOURCE}" \
       org.opencontainers.image.documentation="${IMAGE_SOURCE}#readme" \

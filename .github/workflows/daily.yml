@@ -192,12 +192,6 @@ jobs:
             dive_sha: 0970549eb4a306f8825a84145a2534153badb4d7dcf3febd1967c706367c3d0e
             syft_sha: ad92bd3ec1b94a3df01d4d0aec199afa9c42b72e86da436ff5f837914d32706b
             grype_sha: f1ba7e2917ee1395618de20a98da0aa7c0fb1788927797651047c50502a37538
-          - arch: arm64
-            platform: linux/arm64
-            runner: ubuntu-24.04-arm
-            dive_sha: 2fcd2cf20f634ccdb41efac44048b204bfc867c115641f37a7420693ed480a18
-            syft_sha: 8efe605309c98798e1ee0cffdcf8c05ca26819b4cd44c0b03650f1e963e9bdb6
-            grype_sha: 819e5be3d9516432fedb7b6b56df7306c3a16607606dfc05826eefbb00e471da
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -584,7 +578,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Assemble 3 multi-arch indices on GHCR, mirror to Docker Hub, and Cosign sign/attest
+      - name: Tag verified amd64 images on GHCR, mirror to Docker Hub, and Cosign sign/attest
         id: index
         shell: bash
         env:
@@ -602,16 +596,11 @@ jobs:
           for t in authserver worldserver db-import; do
             IMG="${IMAGE_PREFIX}-${t}"
             DIG_AMD64="$(jq -r --arg t "$t" '.digests[$t]' .ci-in/arch-artifacts-amd64/arch-meta-amd64.json)"
-            DIG_ARM64="$(jq -r --arg t "$t" '.digests[$t]' .ci-in/arch-artifacts-arm64/arch-meta-arm64.json)"
-            test -n "$DIG_AMD64" && test -n "$DIG_ARM64"
+            test -n "$DIG_AMD64"
 
-            ARGS=()
             for tag in "${TAGS[@]}"; do
-              ARGS+=(-t "ghcr.io/${IMG}:${tag}")
+              crane tag "ghcr.io/${IMG}@${DIG_AMD64}" "$tag"
             done
-            docker buildx imagetools create "${ARGS[@]}" \
-              "ghcr.io/${IMG}@${DIG_AMD64}" \
-              "ghcr.io/${IMG}@${DIG_ARM64}"
 
             IDX="$(crane digest "ghcr.io/${IMG}:latest")"
             REGISTRIES=("ghcr.io/${IMG}")
@@ -627,12 +616,8 @@ jobs:
 
             for reg in "${REGISTRIES[@]}"; do
               cosign sign --yes "${reg}@${IDX}"
-              cosign sign --yes "${reg}@${DIG_AMD64}"
-              cosign sign --yes "${reg}@${DIG_ARM64}"
               cosign attest --yes --predicate ".ci-in/arch-artifacts-amd64/sbom-${t}-amd64.spdx.json" --type spdxjson "${reg}@${DIG_AMD64}"
               cosign attest --yes --predicate ".ci-in/arch-artifacts-amd64/sbom-${t}-amd64.cdx.json" --type cyclonedx "${reg}@${DIG_AMD64}"
-              cosign attest --yes --predicate ".ci-in/arch-artifacts-arm64/sbom-${t}-arm64.spdx.json" --type spdxjson "${reg}@${DIG_ARM64}"
-              cosign attest --yes --predicate ".ci-in/arch-artifacts-arm64/sbom-${t}-arm64.cdx.json" --type cyclonedx "${reg}@${DIG_ARM64}"
             done
 
             KEY="${t//-/_}"
@@ -661,12 +646,28 @@ jobs:
           subject-digest: ${{ steps.index.outputs.db_import_index }}
           push-to-registry: true
 
+      - name: Attest SLSA Build L3 provenance (Docker Hub authserver)
+        if: steps.hub_auth.outputs.enabled == 'true'
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-name: index.docker.io/${{ env.IMAGE_PREFIX }}-authserver
+          subject-digest: ${{ steps.index.outputs.authserver_index }}
+          push-to-registry: true
+
       - name: Attest SLSA Build L3 provenance (Docker Hub worldserver)
         if: steps.hub_auth.outputs.enabled == 'true'
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-name: index.docker.io/${{ env.IMAGE_PREFIX }}-worldserver
           subject-digest: ${{ steps.index.outputs.worldserver_index }}
+          push-to-registry: true
+
+      - name: Attest SLSA Build L3 provenance (Docker Hub db-import)
+        if: steps.hub_auth.outputs.enabled == 'true'
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-name: index.docker.io/${{ env.IMAGE_PREFIX }}-db-import
+          subject-digest: ${{ steps.index.outputs.db_import_index }}
           push-to-registry: true
 
       - name: Publish signed GitHub Release with SBOMs and checksums
@@ -683,15 +684,13 @@ jobs:
           set -euo pipefail
           mkdir -p .rel
           cp .ci-in/arch-artifacts-amd64/sbom-*-amd64.*.json .rel/
-          cp .ci-in/arch-artifacts-arm64/sbom-*-arm64.*.json .rel/
           DEBIAN_VER="$(jq -r '.debian_version' .ci-in/arch-artifacts-amd64/arch-meta-amd64.json)"
           AMD64_MB="$(jq -r '.size_mb' .ci-in/arch-artifacts-amd64/arch-meta-amd64.json)"
-          ARM64_MB="$(jq -r '.size_mb' .ci-in/arch-artifacts-arm64/arch-meta-arm64.json)"
 
           (
             cd .rel
             {
-              echo "# Multi-arch OCI digests (identical on GHCR and Docker Hub)"
+              echo "# Signed OCI digests (linux/amd64, identical on GHCR and Docker Hub)"
               echo "${AUTH_IDX}  ${IMAGE_PREFIX}-authserver:${TAG}"
               echo "${WORLD_IDX}  ${IMAGE_PREFIX}-worldserver:${TAG}"
               echo "${DB_IDX}  ${IMAGE_PREFIX}-db-import:${TAG}"
@@ -708,10 +707,11 @@ jobs:
 
           ### Verified Components
           - **AzerothCore:** \`${VER}\` (\`${SHORT_SHA}\`, \`GPL-2.0-only\`)
+          - **MySQL Client Library:** Oracle MySQL 8.4 LTS (\`libmysqlclient24\` / \`mysql-client\`)
           - **Base OS:** Debian \`${DEBIAN_VER}\` (\`trixie-slim\`)
-          - **Architectures:** \`linux/amd64\` (worldserver ${AMD64_MB} MB), \`linux/arm64\` (worldserver ${ARM64_MB} MB)
+          - **Architecture:** \`linux/amd64\` (worldserver ${AMD64_MB} MB) — \`linux/arm64\` unsupported upstream (\`acore/ac-wotlk-*\` and Oracle MySQL 8.4 Debian 13 APT ship \`amd64\` only)
 
-          ### Identical Multi-Arch Digests (Docker Hub & GHCR)
+          ### Identical Signed Digests (Docker Hub & GHCR)
           - **authserver:** \`${AUTH_IDX}\`
           - **worldserver:** \`${WORLD_IDX}\`
           - **db-import:** \`${DB_IDX}\`
@@ -735,7 +735,6 @@ jobs:
           set -euo pipefail
           DEBIAN_VER="$(jq -r '.debian_version' .ci-in/arch-artifacts-amd64/arch-meta-amd64.json)"
           AMD64_MB="$(jq -r '.size_mb' .ci-in/arch-artifacts-amd64/arch-meta-amd64.json)"
-          ARM64_MB="$(jq -r '.size_mb' .ci-in/arch-artifacts-arm64/arch-meta-arm64.json)"
           HUB_REF=""
           [ "$HUB_ENABLED" = "true" ] && HUB_REF="${IMAGE_PREFIX}-worldserver@${WORLD_IDX}"
           GHCR_REF="ghcr.io/${IMAGE_PREFIX}-worldserver@${WORLD_IDX}"
@@ -759,7 +758,6 @@ jobs:
             --arg auth_idx "${AUTH_IDX}" \
             --arg db_idx "${DB_IDX}" \
             --arg amd64_mb "${AMD64_MB}" \
-            --arg arm64_mb "${ARM64_MB}" \
             --slurpfile cve cve-diff.json \
             '{
               image: $image,
@@ -769,13 +767,14 @@ jobs:
               upstream_version: $upstream_version,
               upstream_commit: $upstream_commit,
               changelog_version: ($upstream_version + "-" + $short_sha),
-              architectures: ["linux/amd64", "linux/arm64"],
-              sizes_mb: { amd64: $amd64_mb, arm64: $arm64_mb },
+              architectures: ["linux/amd64"],
+              sizes_mb: { amd64: $amd64_mb },
               signed: true,
               slsa_provenance: true,
               components: {
                 "AzerothCore": ($upstream_version + " (" + $short_sha + ")"),
                 "Targets": "authserver, worldserver, db-import",
+                "MySQL Client": "Oracle MySQL 8.4 LTS",
                 "Base OS": ("Debian " + $debian_version + " (trixie-slim)")
               },
               target_digests: {
