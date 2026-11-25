@@ -52,6 +52,11 @@ for pair in \
   docker run --rm --security-opt no-new-privileges:true \
     -v "${TMPETC}:/azerothcore/env/dist/etc" \
     "$img" bash -c "grep -q '# custom-sentinel' /azerothcore/env/dist/etc/${comp}.conf"
+  # The entrypoint seeds ref/etc into the mount as UID 1000; mod-ale adds a
+  # modules/ subdirectory the runner cannot unlink directly. Normalize
+  # ownership via a throwaway root container so host cleanup succeeds.
+  docker run --rm --user 0 --entrypoint bash -v "${TMPETC}:/az-clean" "$img" \
+    -c 'chmod -R 777 /az-clean' >/dev/null 2>&1 || true
   rm -rf "$TMPETC"
 
   # Negative TCP healthcheck against closed port must fail
