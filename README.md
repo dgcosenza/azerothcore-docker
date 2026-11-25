@@ -38,17 +38,23 @@ Source-built **AzerothCore WotLK** container images (`authserver`, `worldserver`
 <!-- versions:start -->
 | Component | Resolved Version |
 | --- | --- |
-| AzerothCore | `17.0.0-dev (3a25f72)` |
+| AzerothCore | `17.0.0-dev (66299e6)` |
+| Modules | `mod-ale (84b85cc)` |
 | Targets | `authserver, worldserver, db-import` |
 | MySQL Client | `Oracle MySQL 8.4 LTS` |
 | Base OS | `Debian 13.8 (trixie-slim)` |
 | Architectures | `linux/amd64` |
-| Uncompressed size (per arch) | `amd64: 192.4 MB` |
+| Uncompressed size (per arch) | `amd64: 200.3 MB` |
 | Last verified build (UTC) | `2026-11-25` |
-| Published multi-arch digest | `dgcosenza/ac-wotlk-worldserver@sha256:33124306db83be9f2d6b4191f15c8e4e90b5cb867a46a3b43e91dd9bda3b9e49` |
-| GHCR mirror | `ghcr.io/dgcosenza/ac-wotlk-worldserver@sha256:33124306db83be9f2d6b4191f15c8e4e90b5cb867a46a3b43e91dd9bda3b9e49` |
+| Published multi-arch digest | `dgcosenza/ac-wotlk-worldserver@sha256:dd37dbca46151f534a416fa2aca53ffca174d5ed4ba98d08182d29dd407ab59d` |
+| GHCR mirror | `ghcr.io/dgcosenza/ac-wotlk-worldserver@sha256:dd37dbca46151f534a416fa2aca53ffca174d5ed4ba98d08182d29dd407ab59d` |
 | Supply chain | Cosign OIDC signed + SPDX & CycloneDX SBOM attestations + SLSA Build L3 provenance |
 | Security gate (Trivy + Grype on SBOM) | **0 fixable Critical/High** (13 upstream-unfixed) |
+
+**Recent upstream changes:**
+- AzerothCore master advanced from 3a25f72 to 66299e6.
+- 52f5e58: fix(DB/Quest): Restrict Poison Water chain to Tauren (#28566)
+- 66299e6: chore(DB): import pending files
 <!-- versions:end -->
 
 ---
