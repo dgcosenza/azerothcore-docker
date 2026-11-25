@@ -65,11 +65,12 @@ RUN set -eux; \
     git -C /tmp/ac-src checkout --detach FETCH_HEAD; \
     test "$(git -C /tmp/ac-src rev-parse HEAD)" = "${AZEROTHCORE_COMMIT}"; \
     cp -a /tmp/ac-src/CMakeLists.txt /azerothcore/CMakeLists.txt; \
+    cp -a /tmp/ac-src/apps /azerothcore/apps; \
     cp -a /tmp/ac-src/conf /azerothcore/conf; \
-    cp -a /tmp/ac-src/data /azerothcore/data; \
-    cp -a /tmp/ac-src/deps /azerothcore/deps; \
-    cp -a /tmp/ac-src/src /azerothcore/src; \
-    cp -a /tmp/ac-src/modules /azerothcore/modules; \
+    cp -a /tmp/ac-src/data/. /azerothcore/data/; \
+    cp -a /tmp/ac-src/deps/. /azerothcore/deps/; \
+    cp -a /tmp/ac-src/src/. /azerothcore/src/; \
+    cp -a /tmp/ac-src/modules/. /azerothcore/modules/; \
     cp -a /tmp/ac-src/.git /azerothcore/.git; \
     rm -rf /tmp/ac-src
 
