@@ -21,6 +21,11 @@ for pair in \
   echo "=== Smoke testing ${comp} (${img}) ==="
 
   # Verify non-root acore UID/GID 1000, tini PID 1, and mysql/mysqladmin presence
+  # Note: upstream dbimport exits 0 on --help (not --version, which proceeds to DB init).
+  PROBE_FLAG="--version"
+  if [ "$comp" = "dbimport" ]; then
+    PROBE_FLAG="--help"
+  fi
   OUT="$(docker run --rm --security-opt no-new-privileges:true \
     --entrypoint /usr/bin/tini "$img" -- bash -c "
       set -euo pipefail
@@ -30,9 +35,9 @@ for pair in \
       command -v mysql >/dev/null
       command -v mysqladmin >/dev/null
       ! ldd \"${bin}\" | grep -q 'not found'
-      \"${bin}\" --version
+      \"${bin}\" ${PROBE_FLAG}
     ")"
-  echo "${comp} version: ${OUT}"
+  echo "${comp} probe (${PROBE_FLAG}): $(printf '%s\n' "${OUT}" | head -n 2)"
 
   # Verify entrypoint seeds default .conf without overwriting pre-existing custom .conf
   TMPETC="$(mktemp -d)"

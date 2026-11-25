@@ -59,7 +59,7 @@ ARG AZEROTHCORE_COMMIT
 ARG CTYPE="RelWithDebInfo"
 ARG CSCRIPTS="static"
 ARG CMODULES="static"
-ARG CTOOLS_BUILD="none"
+ARG CTOOLS_BUILD="db-only"
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN set -eux; \
@@ -67,8 +67,8 @@ RUN set -eux; \
     apt-get install -y --no-install-recommends \
       build-essential ccache clang cmake cmake-data curl \
       git libboost-all-dev libbz2-dev liblzma-dev libmysqlclient-dev \
-      libncurses-dev libreadline-dev libssl-dev libtool mysql-client \
-      ninja-build openssl pkg-config unzip zlib1g-dev; \
+      libncurses-dev libreadline-dev libssl-dev libtool libzstd-dev lld \
+      mysql-client ninja-build openssl pkg-config unzip zlib1g-dev; \
     rm -rf /var/lib/apt/lists/*; \
     git init /tmp/ac-src; \
     git -C /tmp/ac-src remote add origin https://github.com/azerothcore/azerothcore-wotlk.git; \
@@ -104,6 +104,8 @@ RUN --mount=type=cache,target=/ccache,sharing=locked \
       -DCMAKE_BUILD_TYPE="${CTYPE}" \
       -DCMAKE_CXX_COMPILER="clang++" \
       -DCMAKE_C_COMPILER="clang" \
+      -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=lld" \
+      -DCMAKE_SHARED_LINKER_FLAGS="-fuse-ld=lld" \
       -DCMAKE_CXX_COMPILER_LAUNCHER="ccache" \
       -DCMAKE_C_COMPILER_LAUNCHER="ccache" \
       -DBoost_USE_STATIC_LIBS="ON"; \
@@ -126,7 +128,7 @@ RUN set -eux; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
       bash gettext-base libbz2-1.0 libicu76 liblzma5 libmysqlclient24 \
-      libncurses6 libreadline8t64 libssl3t64 mysql-client \
+      libncurses6 libreadline8t64 libssl3t64 libzstd1 mysql-client \
       passwd procps tini zlib1g; \
     groupadd --gid "${GROUP_ID}" "${DOCKER_USER}"; \
     useradd --uid "${USER_ID}" --gid "${GROUP_ID}" --create-home \

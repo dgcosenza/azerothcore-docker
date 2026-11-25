@@ -191,7 +191,7 @@ done
 1. **Upstream check:** Resolves the latest `azerothcore/azerothcore-wotlk` `master` commit and `debian:trixie-slim` digest, diffs against `versions.json`, fetches recent commit summaries via the authenticated GitHub API, and emits `upstream-changes.md`.
 2. **Cached / scheduled no-cache rebuild:** Builds all three targets (`authserver`, `worldserver`, `db-import`) with `--no-cache` on scheduled daily runs and Buildx/ccache acceleration on push/PR builds, upgrading Debian 13 packages and emitting **SPDX SBOM** and provenance artifacts.
 3. **Vulnerability fix and gate:** Scans all three targets with **Trivy** (table, JSON, SARIF upload, blocking `--ignore-unfixed` gate) and **Grype** (blocking `--only-fixed` gate, severity cutoff `high`), diffs CVEs against the previous scan, and retains reports for 90 days.
-4. **Smoke test:** Runs [`tests/smoke.sh`](https://github.com/dgcosenza/azerothcore-docker/blob/main/tests/smoke.sh) across all three targets (UID/GID `1000`, `tini` PID 1, `mysql`/`mysqladmin`, `ldd` linkage, `--version`, non-clobbering `entrypoint.sh` config seeding, negative TCP healthcheck).
+4. **Smoke test:** Runs [`tests/smoke.sh`](https://github.com/dgcosenza/azerothcore-docker/blob/main/tests/smoke.sh) across all three targets (UID/GID `1000`, `tini` PID 1, `mysql`/`mysqladmin`, `ldd` linkage, `--version`/`--help`, non-clobbering `entrypoint.sh` config seeding, negative TCP healthcheck).
 5. **Publish:** On non-PR builds when Docker Hub secrets are configured, pushes matching tags to `dgcosenza/ac-wotlk-authserver`, `dgcosenza/ac-wotlk-worldserver`, and `dgcosenza/ac-wotlk-db-import` and records the worldserver digest.
 6. **Automated documentation sync:** Commits updated `versions.json`, the README `Current Versions` block, and a dated `CHANGELOG.md` entry via `github-actions[bot]` with `[skip ci]` when content changes, then syncs Docker Hub descriptions for all three repositories via `peter-evans/dockerhub-description`.
 7. **Failure alerting:** On failure, CI opens or updates a single GitHub issue labeled `ci-failure` with the failing job and run link, and auto-closes it on the next green run.
@@ -200,7 +200,7 @@ done
 
 ## Design Decisions
 
-- **Debian 13 (`trixie-slim`) with Clang 19 + Ninja + static Boost + Oracle MySQL 8.4 LTS client:** Replaces the Ubuntu 24.04 upstream base with a lean Debian 13 runtime (`libmysqlclient24`, `mysql-client`, `libreadline8t64`, `libicu76`) verified against Oracle's official APT signing key while preserving full `mysql`/`mysqladmin` wait-script and C API compatibility.
+- **Debian 13 (`trixie-slim`) with Clang 19 + lld + Ninja + static Boost + Oracle MySQL 8.4 LTS client:** Replaces the Ubuntu 24.04 upstream base with a lean Debian 13 runtime (`libmysqlclient24`, `mysql-client`, `libreadline8t64`, `libicu76`, `libzstd1`) verified against Oracle's official APT signing key while preserving full `mysql`/`mysqladmin` wait-script and C API compatibility.
 - **Single multi-target Dockerfile:** Compiles AzerothCore once in the `build` stage and packages `authserver`, `worldserver`, and `db-import` cleanly from the exact same revision.
 
 ---
