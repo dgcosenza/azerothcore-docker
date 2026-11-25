@@ -1,13 +1,20 @@
-# Example Docker Compose configuration for dgcosenza/ac-wotlk-* images
-# Pin by @sha256 digest in production.
+# Hardened Docker Compose example for dgcosenza/ac-wotlk-* images
+# Pin all three services by matching @sha256 digest from the same build run.
+# Available identically on Docker Hub (dgcosenza/ac-wotlk-*) and GHCR (ghcr.io/dgcosenza/ac-wotlk-*).
 # IMPORTANT: Never run `docker compose down -v` or `-V` if custom worldserver.conf
 # lives in a Docker-managed volume.
 
 services:
   ac-db-import:
     image: dgcosenza/ac-wotlk-db-import:latest
+    read_only: true
+    cap_drop:
+      - ALL
     security_opt:
       - no-new-privileges:true
+    tmpfs:
+      - /tmp:nosuid,size=64m
+      - /azerothcore/env/dist/temp:nosuid,size=64m
     environment:
       AC_DISABLE_INTERACTIVE: "1"
       AC_UPDATES_ENABLE_DATABASES: "7"
@@ -19,15 +26,24 @@ services:
   ac-authserver:
     image: dgcosenza/ac-wotlk-authserver:latest
     restart: unless-stopped
-    security_opt:
-      - no-new-privileges:true
+    read_only: true
+    cap_drop:
+      - ALL
     cap_add:
       - SYS_NICE
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:nosuid,size=64m
+      - /azerothcore/env/dist/temp:nosuid,size=64m
+      - /azerothcore/env/dist/logs:nosuid,size=64m
     ports:
       - "3724:3724"
     environment:
       AC_LOGIN_DATABASE_INFO: "ac-database;3306;acore;${MYSQL_PASSWORD};acore_auth"
       AC_UPDATES_ENABLE_DATABASES: "1"
+    volumes:
+      - ac-authserver-etc:/azerothcore/env/dist/etc
     healthcheck:
       test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/3724"]
       interval: 30s
@@ -38,10 +54,17 @@ services:
   ac-worldserver:
     image: dgcosenza/ac-wotlk-worldserver:latest
     restart: unless-stopped
-    security_opt:
-      - no-new-privileges:true
+    read_only: true
+    cap_drop:
+      - ALL
     cap_add:
       - SYS_NICE
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:nosuid,size=128m
+      - /azerothcore/env/dist/temp:nosuid,size=128m
+      - /azerothcore/env/dist/logs:nosuid,size=128m
     stdin_open: true
     tty: true
     ports:
@@ -62,4 +85,5 @@ services:
 
 volumes:
   ac-client-data:
+  ac-authserver-etc:
   ac-worldserver-etc:

@@ -1,8 +1,15 @@
 # AzerothCore WotLK — Debian 13 (trixie-slim) Images
 
 [![Daily AzerothCore images](https://github.com/dgcosenza/azerothcore-docker/actions/workflows/daily.yml/badge.svg)](https://github.com/dgcosenza/azerothcore-docker/actions/workflows/daily.yml)
-[![Docker Pulls (worldserver)](https://img.shields.io/docker/pulls/dgcosenza/ac-wotlk-worldserver)](https://hub.docker.com/r/dgcosenza/ac-wotlk-worldserver)
-[![Docker Image Size (worldserver)](https://img.shields.io/docker/image-size/dgcosenza/ac-wotlk-worldserver/latest)](https://hub.docker.com/r/dgcosenza/ac-wotlk-worldserver)
+[![Packaging License: MIT](https://img.shields.io/badge/packaging-MIT-blue.svg)](https://github.com/dgcosenza/azerothcore-docker/blob/main/LICENSE)
+[![Upstream License: GPL-2.0-only](https://img.shields.io/badge/upstream-GPL--2.0--only-green.svg)](https://github.com/azerothcore/azerothcore-wotlk/blob/master/LICENSE)
+[![Signed with Cosign](https://img.shields.io/badge/signed-cosign%20OIDC-blueviolet.svg)](#supply-chain-verification)
+[![SLSA Level 3](https://img.shields.io/badge/SLSA-Level%203-brightgreen.svg)](#supply-chain-verification)
+[![Architectures](https://img.shields.io/badge/arch-amd64%20%7C%20arm64-informational.svg)](#supported-architectures)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/dgcosenza/azerothcore-docker/badge)](https://scorecard.dev/viewer/?uri=github.com/dgcosenza/azerothcore-docker)
+[![Docker Pulls](https://img.shields.io/docker/pulls/dgcosenza/ac-wotlk-worldserver)](https://hub.docker.com/r/dgcosenza/ac-wotlk-worldserver)
+[![Docker Image Size](https://img.shields.io/docker/image-size/dgcosenza/ac-wotlk-worldserver/latest)](https://hub.docker.com/r/dgcosenza/ac-wotlk-worldserver)
+[![Latest Release](https://img.shields.io/github/v/release/dgcosenza/azerothcore-docker?label=version)](https://github.com/dgcosenza/azerothcore-docker/releases)
 
 Source-built **AzerothCore WotLK** container images (`authserver`, `worldserver`, and `db-import`) compiled with Clang/Ninja on **Debian 13 (`trixie-slim`)**, maintained by **Daniel G. Cosenza from FNX Labs**.
 
@@ -10,6 +17,7 @@ Source-built **AzerothCore WotLK** container images (`authserver`, `worldserver`
   - [`dgcosenza/ac-wotlk-worldserver`](https://hub.docker.com/r/dgcosenza/ac-wotlk-worldserver)
   - [`dgcosenza/ac-wotlk-authserver`](https://hub.docker.com/r/dgcosenza/ac-wotlk-authserver)
   - [`dgcosenza/ac-wotlk-db-import`](https://hub.docker.com/r/dgcosenza/ac-wotlk-db-import)
+- **GitHub Container Registry (GHCR):** [`ghcr.io/dgcosenza/ac-wotlk-worldserver`](https://github.com/dgcosenza/azerothcore-docker/pkgs/container/ac-wotlk-worldserver) (identical signed multi-arch digest)
 - **Source Repository:** [`dgcosenza/azerothcore-docker`](https://github.com/dgcosenza/azerothcore-docker)
 - **Upstream Application:** [`azerothcore/azerothcore-wotlk`](https://github.com/azerothcore/azerothcore-wotlk) (AGPL-3.0 / GPL-2.0)
 - **Packaging License:** MIT (see [`LICENSE`](https://github.com/dgcosenza/azerothcore-docker/blob/main/LICENSE) and [`THIRD-PARTY-NOTICES.md`](https://github.com/dgcosenza/azerothcore-docker/blob/main/THIRD-PARTY-NOTICES.md))
@@ -61,10 +69,12 @@ image: dgcosenza/ac-wotlk-worldserver:latest@sha256:<digest>
 
 ## Supported Architectures
 
-| Architecture | Status | Notes |
+| Architecture | Status | Verification |
 | --- | --- | --- |
-| `linux/amd64` | **Published & tested** | All three targets built, smoke-tested, scanned with Trivy and Grype, and published to Docker Hub. |
+| `linux/amd64` | **Published & natively tested** | Built, smoke-tested, Dive-gated, Syft/Trivy/Grype-scanned, and Cosign-signed on native x86_64 CI runners. |
+| `linux/arm64` | **Published & natively tested** | Built, smoke-tested, Dive-gated, Syft/Trivy/Grype-scanned, and Cosign-signed on native ARM64 CI runners. |
 
+Identical multi-arch OCI manifest digests are published to **Docker Hub** and **GHCR** (`ghcr.io/dgcosenza/*`), accompanied by automated signed [GitHub Releases](https://github.com/dgcosenza/azerothcore-docker/releases).
 ---
 
 ## Quick Start
@@ -104,6 +114,39 @@ All upstream `AC_*` configuration overrides (e.g., `AC_LOGIN_DATABASE_INFO`, `AC
 2. Tag outgoing images for rollback (`local/acore-rollback:<date>`).
 3. Update `ac-db-import`, `ac-authserver`, and `ac-worldserver` to matching digests from the same build run.
 4. Recreate one service at a time (`docker compose run --rm ac-db-import`, then `docker compose up -d --no-deps ac-authserver`, then `docker compose up -d --no-deps ac-worldserver`) — **never** `docker compose down` or `-V`.
+
+---
+
+## Supply-Chain Verification
+
+Every published digest (multi-arch index and per-architecture manifests) on both Docker Hub and GHCR is keyless-signed with **Sigstore Cosign** (GitHub OIDC), attested with **SPDX** and **CycloneDX** SBOMs, and backed by **SLSA Build L3** provenance (`actions/attest-build-provenance`).
+
+### Verify image signature with Cosign
+
+```bash
+cosign verify \
+  --certificate-identity-regexp="^https://github\.com/dgcosenza/azerothcore-docker/\.github/workflows/daily\.yml@refs/heads/main$" \
+  --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
+  ghcr.io/dgcosenza/ac-wotlk-worldserver:latest
+
+# Or against Docker Hub (identical digest):
+cosign verify \
+  --certificate-identity-regexp="^https://github\.com/dgcosenza/azerothcore-docker/\.github/workflows/daily\.yml@refs/heads/main$" \
+  --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
+  dgcosenza/ac-wotlk-worldserver:latest
+```
+
+### Verify SPDX / CycloneDX SBOM attestations and SLSA Build Provenance
+
+```bash
+cosign verify-attestation \
+  --type spdxjson \
+  --certificate-identity-regexp="^https://github\.com/dgcosenza/azerothcore-docker/\.github/workflows/daily\.yml@refs/heads/main$" \
+  --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
+  ghcr.io/dgcosenza/ac-wotlk-worldserver@sha256:<arch-digest>
+
+gh attestation verify oci://ghcr.io/dgcosenza/ac-wotlk-worldserver:latest --owner dgcosenza
+```
 
 ---
 
@@ -162,9 +205,11 @@ done
 
 ---
 
-## License and Credits
+## License
 
-- **Container packaging, entrypoint, CI, and documentation:** [MIT License](https://github.com/dgcosenza/azerothcore-docker/blob/main/LICENSE) — maintained by **Daniel G. Cosenza from FNX Labs**.
-- **AzerothCore WotLK:** AGPL-3.0 / GPL-2.0 ([`azerothcore/azerothcore-wotlk`](https://github.com/azerothcore/azerothcore-wotlk)).
-- Full third-party notices: [`THIRD-PARTY-NOTICES.md`](https://github.com/dgcosenza/azerothcore-docker/blob/main/THIRD-PARTY-NOTICES.md).
-- Release history: [`CHANGELOG.md`](https://github.com/dgcosenza/azerothcore-docker/blob/main/CHANGELOG.md).
+This repository follows a clear packaging-vs-upstream license split:
+
+- **Container packaging, scripts, CI workflows, and documentation (`packaging: MIT`):** Licensed under the [MIT License](https://github.com/dgcosenza/azerothcore-docker/blob/main/LICENSE) — copyright **Daniel G. Cosenza from FNX Labs**.
+- **Bundled upstream software — AzerothCore WotLK (`azerothcore/azerothcore-wotlk`) (`upstream: GPL-2.0-only`):** AzerothCore WotLK is licensed under the [GNU General Public License v2.0 (`GPL-2.0-only`)](https://github.com/azerothcore/azerothcore-wotlk/blob/master/LICENSE).
+
+Full third-party notices are maintained in [`THIRD-PARTY-NOTICES.md`](https://github.com/dgcosenza/azerothcore-docker/blob/main/THIRD-PARTY-NOTICES.md). Release history is maintained in [`CHANGELOG.md`](https://github.com/dgcosenza/azerothcore-docker/blob/main/CHANGELOG.md).
