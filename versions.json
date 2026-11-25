@@ -23,17 +23,17 @@
     "Base OS": "Debian 13.8 (trixie-slim)"
   },
   "target_digests": {
-    "authserver": "sha256:f3f30b46ca01040a2d4a6ca1d2e4fba2990a289917c193b77f4bc1cc963a1806",
-    "worldserver": "dgcosenza/ac-wotlk-worldserver@sha256:118300ca29708132dbfe9709faa90788536334f5a3bce37a10649f87d9777581",
-    "db-import": "sha256:ff7ca4333f9c4238893536e2ea043ec80e74b53fcae41b8dc3f0c56472e11558"
+    "authserver": "sha256:c3502bff293311c72f5391ab7ef5b2e242329df89bede8dd55709852cea13678",
+    "worldserver": "dgcosenza/ac-wotlk-worldserver@sha256:da752932e7db5ee6d836a0194aa4a00380b067d523d13d6a7ad567d08f328546",
+    "db-import": "sha256:48201f7ee57c46bf831b6316ce5e7bf45e93752af4400387e40af7cf840cc5bd"
   },
   "base_image": "debian:trixie-slim",
   "base_digest": "sha256:8aa5a7bf5a1955bddbe7d74fcdd0b91ab30e74362a8b73af672b0481b35b44a0",
   "debian_version": "13.8",
   "build_date": "2026-11-25",
-  "built_at_utc": "2026-11-25T22:21:13Z",
-  "image_digest": "dgcosenza/ac-wotlk-worldserver@sha256:118300ca29708132dbfe9709faa90788536334f5a3bce37a10649f87d9777581",
-  "ghcr_digest": "ghcr.io/dgcosenza/ac-wotlk-worldserver@sha256:118300ca29708132dbfe9709faa90788536334f5a3bce37a10649f87d9777581",
+  "built_at_utc": "2026-11-25T22:55:20Z",
+  "image_digest": "dgcosenza/ac-wotlk-worldserver@sha256:da752932e7db5ee6d836a0194aa4a00380b067d523d13d6a7ad567d08f328546",
+  "ghcr_digest": "ghcr.io/dgcosenza/ac-wotlk-worldserver@sha256:da752932e7db5ee6d836a0194aa4a00380b067d523d13d6a7ad567d08f328546",
   "fixable_critical_high": 0,
   "unfixed_cves": [
     "CVE-2025-69720",

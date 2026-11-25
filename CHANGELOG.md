@@ -18,7 +18,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Mai
   - c846d32: fix(Scripts/TheEye): Skip Al'ar Berserk on death (#28570)
   - 5aa4795: chore(DB): import pending files
 - Vulnerability gate: **0 fixable Critical/High** in Trivy and Grype (SBOM scan) (13 upstream-unfixed).
-- Published multi-arch digest (Docker Hub + GHCR): `dgcosenza/ac-wotlk-worldserver@sha256:118300ca29708132dbfe9709faa90788536334f5a3bce37a10649f87d9777581` (Cosign OIDC signed + SPDX/CycloneDX SBOM + SLSA L3 provenance).
+- Published multi-arch digest (Docker Hub + GHCR): `dgcosenza/ac-wotlk-worldserver@sha256:da752932e7db5ee6d836a0194aa4a00380b067d523d13d6a7ad567d08f328546` (Cosign OIDC signed + SPDX/CycloneDX SBOM + SLSA L3 provenance).
 ---
 
 ## [17.0.0-dev-3a25f72] — 2026-11-24
