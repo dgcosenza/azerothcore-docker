@@ -12,13 +12,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Mai
 ### Automated Daily Build
 - Verified components: AzerothCore `17.0.0-dev (5aa4795)`, Modules `mod-ale (84b85cc)`, Targets `authserver, worldserver, db-import`, MySQL Client `Oracle MySQL 8.4 LTS`, Base OS `Debian 13.8 (trixie-slim)`.
 - Architectures verified: `linux/amd64` (native smoke tests + Dive efficiency gate).
-- Upstream changes:
-  - AzerothCore master advanced from 66299e6 to 5aa4795.
-  - 6142835: fix(DB/Creature): Make Bountiful Table Hostess immune to PCs and NPCs (#28571)
-  - c846d32: fix(Scripts/TheEye): Skip Al'ar Berserk on death (#28570)
-  - 5aa4795: chore(DB): import pending files
+- Upstream status: no new upstream release since previous build; refreshed base OS and dependencies.
 - Vulnerability gate: **0 fixable Critical/High** in Trivy and Grype (SBOM scan) (13 upstream-unfixed).
-- Published multi-arch digest (Docker Hub + GHCR): `dgcosenza/ac-wotlk-worldserver@sha256:da752932e7db5ee6d836a0194aa4a00380b067d523d13d6a7ad567d08f328546` (Cosign OIDC signed + SPDX/CycloneDX SBOM + SLSA L3 provenance).
+- Published multi-arch digest (Docker Hub + GHCR): `dgcosenza/ac-wotlk-worldserver@sha256:5dc05b7333cb3d1c8121639bf05d393a2c15601177207e7b702989f4b172c204` (Cosign OIDC signed + SPDX/CycloneDX SBOM + SLSA L3 provenance).
 ---
 
 ## [17.0.0-dev-3a25f72] — 2026-11-24

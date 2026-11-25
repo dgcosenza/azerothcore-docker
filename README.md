@@ -46,16 +46,10 @@ Source-built **AzerothCore WotLK** container images (`authserver`, `worldserver`
 | Architectures | `linux/amd64` |
 | Uncompressed size (per arch) | `amd64: 200.3 MB` |
 | Last verified build (UTC) | `2026-11-25` |
-| Published multi-arch digest | `dgcosenza/ac-wotlk-worldserver@sha256:da752932e7db5ee6d836a0194aa4a00380b067d523d13d6a7ad567d08f328546` |
-| GHCR mirror | `ghcr.io/dgcosenza/ac-wotlk-worldserver@sha256:da752932e7db5ee6d836a0194aa4a00380b067d523d13d6a7ad567d08f328546` |
+| Published multi-arch digest | `dgcosenza/ac-wotlk-worldserver@sha256:5dc05b7333cb3d1c8121639bf05d393a2c15601177207e7b702989f4b172c204` |
+| GHCR mirror | `ghcr.io/dgcosenza/ac-wotlk-worldserver@sha256:5dc05b7333cb3d1c8121639bf05d393a2c15601177207e7b702989f4b172c204` |
 | Supply chain | Cosign OIDC signed + SPDX & CycloneDX SBOM attestations + SLSA Build L3 provenance |
 | Security gate (Trivy + Grype on SBOM) | **0 fixable Critical/High** (13 upstream-unfixed) |
-
-**Recent upstream changes:**
-- AzerothCore master advanced from 66299e6 to 5aa4795.
-- 6142835: fix(DB/Creature): Make Bountiful Table Hostess immune to PCs and NPCs (#28571)
-- c846d32: fix(Scripts/TheEye): Skip Al'ar Berserk on death (#28570)
-- 5aa4795: chore(DB): import pending files
 <!-- versions:end -->
 
 ---
