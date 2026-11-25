@@ -1,0 +1,170 @@
+# AzerothCore WotLK — Debian 13 (trixie-slim) Images
+
+[![Daily AzerothCore images](https://github.com/dgcosenza/azerothcore-docker/actions/workflows/daily.yml/badge.svg)](https://github.com/dgcosenza/azerothcore-docker/actions/workflows/daily.yml)
+[![Docker Pulls (worldserver)](https://img.shields.io/docker/pulls/dgcosenza/ac-wotlk-worldserver)](https://hub.docker.com/r/dgcosenza/ac-wotlk-worldserver)
+[![Docker Image Size (worldserver)](https://img.shields.io/docker/image-size/dgcosenza/ac-wotlk-worldserver/latest)](https://hub.docker.com/r/dgcosenza/ac-wotlk-worldserver)
+
+Source-built **AzerothCore WotLK** container images (`authserver`, `worldserver`, and `db-import`) compiled with Clang/Ninja on **Debian 13 (`trixie-slim`)**, maintained by **Daniel G. Cosenza from FNX Labs**.
+
+- **Docker Hub Images:**
+  - [`dgcosenza/ac-wotlk-worldserver`](https://hub.docker.com/r/dgcosenza/ac-wotlk-worldserver)
+  - [`dgcosenza/ac-wotlk-authserver`](https://hub.docker.com/r/dgcosenza/ac-wotlk-authserver)
+  - [`dgcosenza/ac-wotlk-db-import`](https://hub.docker.com/r/dgcosenza/ac-wotlk-db-import)
+- **Source Repository:** [`dgcosenza/azerothcore-docker`](https://github.com/dgcosenza/azerothcore-docker)
+- **Upstream Application:** [`azerothcore/azerothcore-wotlk`](https://github.com/azerothcore/azerothcore-wotlk) (AGPL-3.0 / GPL-2.0)
+- **Packaging License:** MIT (see [`LICENSE`](https://github.com/dgcosenza/azerothcore-docker/blob/main/LICENSE) and [`THIRD-PARTY-NOTICES.md`](https://github.com/dgcosenza/azerothcore-docker/blob/main/THIRD-PARTY-NOTICES.md))
+
+---
+
+## Overview
+
+`dgcosenza/azerothcore-docker` compiles `azerothcore/azerothcore-wotlk` `master` from source with Clang 19, CMake, Ninja, and statically linked Boost on **Debian 13 (`trixie-slim`)**, publishing three minimal runtime images with full drop-in compatibility for upstream `acore/ac-wotlk-*` deployments:
+
+- **Exact path & entrypoint parity:** Preserves `/azerothcore/entrypoint.sh`, `/azerothcore/env/dist/bin/{authserver,worldserver,dbimport}`, `/azerothcore/env/dist/{etc,data,logs,temp}`, `/azerothcore/env/ref/etc`, non-root user `acore` (UID/GID `1000:1000`), and `mysql`/`mysqladmin` clients for startup wait scripts.
+- **Hardened & CVE-gated:** Compilers and build headers stay strictly in the `build` stage; runtime images ship `tini` as PID 1, run as non-root `acore` with `no-new-privileges:true`, and enforce **0 fixable Critical/High** findings in both Trivy and Grype across all three images.
+
+---
+
+## Current Versions
+
+<!-- versions:start -->
+| Component | Resolved Version |
+| --- | --- |
+| AzerothCore | `17.0.0-dev (3a25f72)` |
+| Targets | `authserver, worldserver, db-import` |
+| Base OS | `Debian 13.8 (trixie-slim)` |
+| Last verified build (UTC) | `2026-11-24` |
+| Security gate (Trivy + Grype) | **0 fixable Critical/High** (0 upstream-unfixed) |
+<!-- versions:end -->
+
+---
+
+## Supported Tags
+
+Each of the three repositories (`ac-wotlk-worldserver`, `ac-wotlk-authserver`, `ac-wotlk-db-import`) publishes:
+
+| Tag | Policy | Description |
+| --- | --- | --- |
+| `<version>-<commit>-<YYYYMMDD>` | **Immutable** | Point-in-time build pinning the upstream commit and UTC date. |
+| `<version>-<YYYYMMDD>` | **Immutable** | Date-stamped daily rebuild. |
+| `sha-<short>` | **Immutable** | Packaging repository Git commit tag. |
+| `<version>` (e.g. `17.0.0-dev`) | Moving | Latest verified Debian 13 build tracking upstream `master`. |
+| `latest` | Moving | Latest verified build. |
+
+**Production pinning:** Pin all three services by matching digest from the same build run so `db-import`, `authserver`, and `worldserver` stay schema-aligned:
+
+```yaml
+image: dgcosenza/ac-wotlk-worldserver:latest@sha256:<digest>
+```
+
+---
+
+## Supported Architectures
+
+| Architecture | Status | Notes |
+| --- | --- | --- |
+| `linux/amd64` | **Published & tested** | All three targets built, smoke-tested, scanned with Trivy and Grype, and published to Docker Hub. |
+
+---
+
+## Quick Start
+
+See [`docker-compose.example.yml`](https://github.com/dgcosenza/azerothcore-docker/blob/main/docker-compose.example.yml).
+
+> **CRITICAL WARNING:** Never run `docker compose down` or `docker compose down -v` / `up -V` on an existing AzerothCore stack if your customized `worldserver.conf` or `authserver.conf` lives in an anonymous Docker volume mounted at `/azerothcore/env/dist/etc`. Always recreate services individually with `docker compose up -d --no-deps <service>` after backing up both the database and `/azerothcore/env/dist/etc`.
+
+---
+
+## Configuration
+
+### Environment Variables
+
+All upstream `AC_*` configuration overrides (e.g., `AC_LOGIN_DATABASE_INFO`, `AC_WORLD_DATABASE_INFO`, `AC_CHARACTER_DATABASE_INFO`, `AC_DATA_DIR`, `AC_LOGS_DIR`, `AC_UPDATES_ENABLE_DATABASES`, `AC_UPDATES_AUTO_SETUP`, `AC_DISABLE_INTERACTIVE`) work identically to `acore/ac-wotlk-*`.
+
+### Volumes, Ports, and UID/GID
+
+| Target | Port | Key Paths | User |
+| --- | --- | --- | --- |
+| `ac-wotlk-authserver` | `3724/tcp` | `/azerothcore/env/dist/etc`, `/azerothcore/env/dist/logs` | `acore` (`1000:1000`) |
+| `ac-wotlk-worldserver` | `8085/tcp` | `/azerothcore/env/dist/etc`, `/azerothcore/env/dist/data` | `acore` (`1000:1000`) |
+| `ac-wotlk-db-import` | *(none)* | `/azerothcore/data`, `/azerothcore/modules` | `acore` (`1000:1000`) |
+
+---
+
+## Healthcheck
+
+- **`authserver`:** `bash -c 'exec 3<>/dev/tcp/127.0.0.1/3724'`
+- **`worldserver`:** `bash -c 'exec 3<>/dev/tcp/127.0.0.1/8085'`
+
+---
+
+## Upgrading and Migrating from `acore/ac-wotlk-*`
+
+1. Dump all AzerothCore databases (`acore_auth`, `acore_world`, `acore_characters`) and back up `/azerothcore/env/dist/etc` volumes before changing any image.
+2. Tag outgoing images for rollback (`local/acore-rollback:<date>`).
+3. Update `ac-db-import`, `ac-authserver`, and `ac-worldserver` to matching digests from the same build run.
+4. Recreate one service at a time (`docker compose run --rm ac-db-import`, then `docker compose up -d --no-deps ac-authserver`, then `docker compose up -d --no-deps ac-worldserver`) — **never** `docker compose down` or `-V`.
+
+---
+
+## Security
+
+- **Vulnerability scan policy:** Every CI build scans all three targets (`authserver`, `worldserver`, `db-import`) with **Trivy** (table, JSON, SARIF upload, blocking `--ignore-unfixed` gate) and **Grype** (`--only-fixed`, severity cutoff `high`, blocking gate), and emits **SPDX SBOM** artifacts.
+- **Current status:** **0 fixable Critical/High** vulnerabilities across all three Debian 13 runtime images.
+- **Non-root & minimal runtime:** Runs as `acore` (UID/GID `1000:1000`) with `tini` PID 1 and `no-new-privileges:true`; compilers (`clang`, `cmake`, `ninja`, `ccache`, `-dev` headers) are excluded from all runtime images.
+- See [`SECURITY.md`](https://github.com/dgcosenza/azerothcore-docker/blob/main/SECURITY.md).
+
+---
+
+## Build Locally
+
+```bash
+git clone https://github.com/dgcosenza/azerothcore-docker.git
+cd azerothcore-docker
+
+for target in authserver worldserver db-import; do
+  docker buildx build \
+    --platform linux/amd64 \
+    --target "$target" \
+    --load \
+    -t "dgcosenza/ac-wotlk-${target}:local" \
+    .
+done
+```
+
+| Build Arg | Default | Purpose |
+| --- | --- | --- |
+| `AZEROTHCORE_COMMIT` | `3a25f726ed68c5f2c361455ee9cd985fe929c3e9` | Pinned `azerothcore-wotlk` commit SHA (resolved daily by CI). |
+| `AZEROTHCORE_VERSION` | `17.0.0-dev` | Upstream release line label. |
+| `DEBIAN_BASE` | `debian:trixie-slim` | Base OS image. |
+| `CTYPE` | `RelWithDebInfo` | CMake build type. |
+
+---
+
+## Update Policy
+
+[`.github/workflows/daily.yml`](https://github.com/dgcosenza/azerothcore-docker/blob/main/.github/workflows/daily.yml) runs automatically every day at **05:25 UTC**, on pushes to `main`, on pull requests (verification only), and via `workflow_dispatch`. Every scheduled run executes a seven-step automated pipeline (gated by `.github/workflows/public-check.yml`):
+
+1. **Upstream check:** Resolves the latest `azerothcore/azerothcore-wotlk` `master` commit and `debian:trixie-slim` digest, diffs against `versions.json`, fetches recent commit summaries via the authenticated GitHub API, and emits `upstream-changes.md`.
+2. **Cached / scheduled no-cache rebuild:** Builds all three targets (`authserver`, `worldserver`, `db-import`) with `--no-cache` on scheduled daily runs and Buildx/ccache acceleration on push/PR builds, upgrading Debian 13 packages and emitting **SPDX SBOM** and provenance artifacts.
+3. **Vulnerability fix and gate:** Scans all three targets with **Trivy** (table, JSON, SARIF upload, blocking `--ignore-unfixed` gate) and **Grype** (blocking `--only-fixed` gate, severity cutoff `high`), diffs CVEs against the previous scan, and retains reports for 90 days.
+4. **Smoke test:** Runs [`tests/smoke.sh`](https://github.com/dgcosenza/azerothcore-docker/blob/main/tests/smoke.sh) across all three targets (UID/GID `1000`, `tini` PID 1, `mysql`/`mysqladmin`, `ldd` linkage, `--version`, non-clobbering `entrypoint.sh` config seeding, negative TCP healthcheck).
+5. **Publish:** On non-PR builds when Docker Hub secrets are configured, pushes matching tags to `dgcosenza/ac-wotlk-authserver`, `dgcosenza/ac-wotlk-worldserver`, and `dgcosenza/ac-wotlk-db-import` and records the worldserver digest.
+6. **Automated documentation sync:** Commits updated `versions.json`, the README `Current Versions` block, and a dated `CHANGELOG.md` entry via `github-actions[bot]` with `[skip ci]` when content changes, then syncs Docker Hub descriptions for all three repositories via `peter-evans/dockerhub-description`.
+7. **Failure alerting:** On failure, CI opens or updates a single GitHub issue labeled `ci-failure` with the failing job and run link, and auto-closes it on the next green run.
+
+---
+
+## Design Decisions
+
+- **Debian 13 (`trixie-slim`) with Clang 19 + Ninja + static Boost:** Replaces Ubuntu 24.04 upstream base with a lean Debian 13 runtime (`libmariadb3`, `libreadline8t64`, `libicu76`) tracked by daily Debian Security updates while preserving `mysql`/`mysqladmin` compatibility for wait scripts.
+- **Single multi-target Dockerfile:** Compiles AzerothCore once in the `build` stage and packages `authserver`, `worldserver`, and `db-import` cleanly from the exact same revision.
+
+---
+
+## License and Credits
+
+- **Container packaging, entrypoint, CI, and documentation:** [MIT License](https://github.com/dgcosenza/azerothcore-docker/blob/main/LICENSE) — maintained by **Daniel G. Cosenza from FNX Labs**.
+- **AzerothCore WotLK:** AGPL-3.0 / GPL-2.0 ([`azerothcore/azerothcore-wotlk`](https://github.com/azerothcore/azerothcore-wotlk)).
+- Full third-party notices: [`THIRD-PARTY-NOTICES.md`](https://github.com/dgcosenza/azerothcore-docker/blob/main/THIRD-PARTY-NOTICES.md).
+- Release history: [`CHANGELOG.md`](https://github.com/dgcosenza/azerothcore-docker/blob/main/CHANGELOG.md).

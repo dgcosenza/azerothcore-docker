@@ -1,0 +1,20 @@
+{
+  "image": "dgcosenza/ac-wotlk",
+  "upstream_name": "azerothcore/azerothcore-wotlk",
+  "upstream_version": "17.0.0-dev",
+  "upstream_commit": "3a25f726ed68c5f2c361455ee9cd985fe929c3e9",
+  "changelog_version": "17.0.0-dev-3a25f72",
+  "components": {
+    "AzerothCore": "17.0.0-dev (3a25f72)",
+    "Targets": "authserver, worldserver, db-import",
+    "Base OS": "Debian 13.8 (trixie-slim)"
+  },
+  "base_image": "debian:trixie-slim",
+  "base_digest": "",
+  "debian_version": "13.8",
+  "build_date": "2026-11-24",
+  "built_at_utc": "2026-11-24T00:00:00Z",
+  "image_digest": "",
+  "fixable_critical_high": 0,
+  "unfixed_cves": []
+}

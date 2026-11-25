@@ -1,0 +1,580 @@
+name: Daily AzerothCore images
+
+on:
+  schedule:
+    # Daily rebuild at 05:25 UTC to pick up Debian 13 (trixie) security updates
+    # and new AzerothCore master commits.
+    - cron: '25 5 * * *'
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      azerothcore_commit:
+        description: 'Override azerothcore/azerothcore-wotlk commit SHA (leave empty for latest master)'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  IMAGE_PREFIX: dgcosenza/ac-wotlk
+  AZEROTHCORE_VERSION_DEFAULT: '17.0.0-dev'
+
+jobs:
+  public-check:
+    name: Public content check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+      - name: Verify public-content rules and maintainer attribution
+        env:
+          PR_TEXT: ${{ github.event.pull_request.title }} ${{ github.event.pull_request.body }}
+        run: .github/scripts/public-check.sh
+
+  build-scan-publish:
+    name: Build, smoke test, scan, and publish
+    needs: public-check
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    permissions:
+      contents: read
+      security-events: write
+    outputs:
+      published_digest: ${{ steps.push.outputs.digest }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Free disk space on runner for large C++ build
+        shell: bash
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android /opt/hostedtoolcache/CodeQL || true
+          df -h
+
+      - name: Check upstream releases and resolve versions
+        id: resolve
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          COMMIT="${{ inputs.azerothcore_commit }}"
+          if [ -z "$COMMIT" ]; then
+            COMMIT="$(git ls-remote https://github.com/azerothcore/azerothcore-wotlk.git refs/heads/master | awk '{print $1}')"
+          fi
+          test "${#COMMIT}" -eq 40
+          SHORT_SHA="${COMMIT:0:7}"
+
+          # Resolve version label from upstream package.json if present
+          AC_VER="$(curl -fsSL "https://raw.githubusercontent.com/azerothcore/azerothcore-wotlk/${COMMIT}/package.json" 2>/dev/null \
+            | jq -r '.version // empty' || true)"
+          if [ -z "$AC_VER" ]; then
+            AC_VER="${AZEROTHCORE_VERSION_DEFAULT}"
+          fi
+
+          BASE_DIGEST="$(curl -fsSL "https://hub.docker.com/v2/repositories/library/debian/tags/trixie-slim" \
+            | jq -r '.digest // (.images[]? | select(.architecture=="amd64") | .digest) // empty' | head -n1)"
+
+          BUILD_DATE="$(date -u +%Y%m%d)"
+          BUILD_DATE_ISO="$(date -u +%Y-%m-%d)"
+          CREATED="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+          PREV_COMMIT="$(jq -r '.upstream_commit // empty' versions.json 2>/dev/null || true)"
+          PREV_BASE="$(jq -r '.base_digest // empty' versions.json 2>/dev/null || true)"
+
+          {
+            echo "# Upstream Changes (${BUILD_DATE_ISO})"
+            if [ -n "$PREV_COMMIT" ] && [ "$PREV_COMMIT" != "$COMMIT" ]; then
+              echo "- AzerothCore master advanced from ${PREV_COMMIT:0:7} to ${SHORT_SHA}."
+              curl -fsSL \
+                -H 'Accept: application/vnd.github+json' \
+                -H "Authorization: Bearer $GH_TOKEN" \
+                -H 'X-GitHub-Api-Version: 2022-11-28' \
+                "https://api.github.com/repos/azerothcore/azerothcore-wotlk/compare/${PREV_COMMIT}...${COMMIT}" 2>/dev/null \
+                | jq -r '.commits[-5:][]? | "- " + (.sha[0:7]) + ": " + ((.commit.message | split("\n")[0]))' || true
+            fi
+            if [ -n "$BASE_DIGEST" ] && [ -n "$PREV_BASE" ] && [ "$BASE_DIGEST" != "$PREV_BASE" ]; then
+              echo "- Refreshed debian:trixie-slim base image digest."
+            fi
+          } > upstream-changes.md
+
+          {
+            echo "commit=${COMMIT}"
+            echo "short_sha=${SHORT_SHA}"
+            echo "version=${AC_VER}"
+            echo "base_digest=${BASE_DIGEST}"
+            echo "build_date=${BUILD_DATE}"
+            echo "build_date_iso=${BUILD_DATE_ISO}"
+            echo "created=${CREATED}"
+          } >> "$GITHUB_OUTPUT"
+
+          echo "Resolved AzerothCore=${AC_VER} (${COMMIT}), base=${BASE_DIGEST}"
+
+      - name: Upload upstream changes artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: upstream-changes
+          path: upstream-changes.md
+          retention-days: 90
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build authserver linux/amd64 image (primes shared C++ build stage cache)
+        id: build_auth
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          target: authserver
+          platforms: linux/amd64
+          load: true
+          no-cache: ${{ github.event_name == 'schedule' }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: |
+            ${{ env.IMAGE_PREFIX }}-authserver:ci-candidate
+          build-args: |
+            AZEROTHCORE_COMMIT=${{ steps.resolve.outputs.commit }}
+            AZEROTHCORE_VERSION=${{ steps.resolve.outputs.version }}
+            BUILD_DATE=${{ steps.resolve.outputs.created }}
+            IMAGE_REVISION=${{ github.sha }}
+            IMAGE_SOURCE=https://github.com/${{ github.repository }}
+
+      - name: Build worldserver linux/amd64 image (reuses build stage cache)
+        id: build_world
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          target: worldserver
+          platforms: linux/amd64
+          load: true
+          cache-from: type=gha
+          tags: |
+            ${{ env.IMAGE_PREFIX }}-worldserver:ci-candidate
+          build-args: |
+            AZEROTHCORE_COMMIT=${{ steps.resolve.outputs.commit }}
+            AZEROTHCORE_VERSION=${{ steps.resolve.outputs.version }}
+            BUILD_DATE=${{ steps.resolve.outputs.created }}
+            IMAGE_REVISION=${{ github.sha }}
+            IMAGE_SOURCE=https://github.com/${{ github.repository }}
+
+      - name: Build db-import linux/amd64 image (reuses build stage cache)
+        id: build_db
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          target: db-import
+          platforms: linux/amd64
+          load: true
+          cache-from: type=gha
+          tags: |
+            ${{ env.IMAGE_PREFIX }}-db-import:ci-candidate
+          build-args: |
+            AZEROTHCORE_COMMIT=${{ steps.resolve.outputs.commit }}
+            AZEROTHCORE_VERSION=${{ steps.resolve.outputs.version }}
+            BUILD_DATE=${{ steps.resolve.outputs.created }}
+            IMAGE_REVISION=${{ github.sha }}
+            IMAGE_SOURCE=https://github.com/${{ github.repository }}
+
+      - name: Inspect resolved OS version and emit provenance metadata
+        id: inspect_image
+        shell: bash
+        run: |
+          set -euo pipefail
+          DEBIAN_VERSION="$(docker run --rm --entrypoint cat "${IMAGE_PREFIX}-worldserver:ci-candidate" /etc/debian_version | tr -d '\r\n')"
+          echo "debian_version=${DEBIAN_VERSION}" >> "$GITHUB_OUTPUT"
+          jq -n \
+            --arg image "${IMAGE_PREFIX}" \
+            --arg version "${{ steps.resolve.outputs.version }}" \
+            --arg commit "${{ steps.resolve.outputs.commit }}" \
+            --arg debian_version "${DEBIAN_VERSION}" \
+            --arg base_digest "${{ steps.resolve.outputs.base_digest }}" \
+            --arg created "${{ steps.resolve.outputs.created }}" \
+            --arg revision "${GITHUB_SHA}" \
+            --arg run_url "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" \
+            '{image_prefix: $image, version: $version, commit: $commit, debian_version: $debian_version, base_digest: $base_digest, created: $created, git_revision: $revision, run_url: $run_url}' \
+            > provenance.json
+          echo "Detected Debian=${DEBIAN_VERSION}"
+
+      - name: Smoke-test authserver, worldserver, and db-import images
+        shell: bash
+        run: |
+          ./tests/smoke.sh \
+            "${IMAGE_PREFIX}-authserver:ci-candidate" \
+            "${IMAGE_PREFIX}-worldserver:ci-candidate" \
+            "${IMAGE_PREFIX}-db-import:ci-candidate"
+
+      - name: Scan worldserver with Trivy — full table & JSON (informational)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: '${{ env.IMAGE_PREFIX }}-worldserver:ci-candidate'
+          format: 'table'
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '0'
+          output: 'trivy-report.txt'
+
+      - name: Scan worldserver with Trivy — full JSON for CVE diffing
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: '${{ env.IMAGE_PREFIX }}-worldserver:ci-candidate'
+          format: 'json'
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '0'
+          output: 'trivy-report.json'
+
+      - name: Compute CVE diff against previous build
+        shell: bash
+        run: python3 .github/scripts/cve-diff.py versions.json trivy-report.json cve-diff.json
+
+      - name: Scan worldserver with Trivy — SARIF for code scanning
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: '${{ env.IMAGE_PREFIX }}-worldserver:ci-candidate'
+          format: 'sarif'
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+          ignore-unfixed: true
+          output: 'trivy-results.sarif'
+          exit-code: '0'
+
+      - name: Upload Trivy SARIF to code scanning
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: 'trivy-results.sarif'
+          category: trivy-azerothcore
+
+      - name: Upload Trivy and provenance artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: trivy-report
+          path: |
+            trivy-report.txt
+            trivy-report.json
+            cve-diff.json
+            provenance.json
+          retention-days: 90
+          if-no-files-found: ignore
+
+      - name: Scan worldserver with Trivy — HARD GATE
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: '${{ env.IMAGE_PREFIX }}-worldserver:ci-candidate'
+          format: 'table'
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+          ignore-unfixed: true
+          exit-code: '1'
+
+      - name: Scan authserver with Trivy — HARD GATE
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: '${{ env.IMAGE_PREFIX }}-authserver:ci-candidate'
+          format: 'table'
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+          ignore-unfixed: true
+          exit-code: '1'
+
+      - name: Scan db-import with Trivy — HARD GATE
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: '${{ env.IMAGE_PREFIX }}-db-import:ci-candidate'
+          format: 'table'
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+          ignore-unfixed: true
+          exit-code: '1'
+
+      - name: Scan worldserver with Grype — HARD GATE
+        uses: anchore/scan-action@v7
+        with:
+          image: '${{ env.IMAGE_PREFIX }}-worldserver:ci-candidate'
+          only-fixed: true
+          severity-cutoff: high
+          fail-build: true
+          output-format: table
+          output-file: grype-worldserver.txt
+
+      - name: Scan authserver with Grype — HARD GATE
+        uses: anchore/scan-action@v7
+        with:
+          image: '${{ env.IMAGE_PREFIX }}-authserver:ci-candidate'
+          only-fixed: true
+          severity-cutoff: high
+          fail-build: true
+          output-format: table
+          output-file: grype-authserver.txt
+
+      - name: Scan db-import with Grype — HARD GATE
+        uses: anchore/scan-action@v7
+        with:
+          image: '${{ env.IMAGE_PREFIX }}-db-import:ci-candidate'
+          only-fixed: true
+          severity-cutoff: high
+          fail-build: true
+          output-format: table
+          output-file: grype-db-import.txt
+
+      - name: Upload Grype report artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: grype-report
+          path: grype-*.txt
+          retention-days: 90
+          if-no-files-found: ignore
+
+      - name: Generate SBOM for worldserver with Syft
+        uses: anchore/sbom-action@v0
+        with:
+          image: '${{ env.IMAGE_PREFIX }}-worldserver:ci-candidate'
+          format: 'spdx-json'
+          artifact-name: 'sbom-worldserver.spdx.json'
+          upload-artifact-retention: 90
+
+      - name: Check Docker Hub publish credentials
+        id: hub_auth
+        shell: bash
+        env:
+          DH_USER: ${{ secrets.DOCKERHUB_USERNAME }}
+          DH_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          if [ "${{ github.event_name }}" != "pull_request" ] && [ -n "$DH_USER" ] && [ -n "$DH_TOKEN" ]; then
+            echo "can_publish=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "can_publish=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping Docker Hub push (PR event or DOCKERHUB_USERNAME/DOCKERHUB_TOKEN not configured)."
+          fi
+
+      - name: Log in to Docker Hub
+        if: steps.hub_auth.outputs.can_publish == 'true'
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Tag and push all three verified images to Docker Hub
+        if: steps.hub_auth.outputs.can_publish == 'true'
+        id: push
+        shell: bash
+        run: |
+          set -euo pipefail
+          VER="${{ steps.resolve.outputs.version }}"
+          SHORT="${{ steps.resolve.outputs.short_sha }}"
+          BDATE="${{ steps.resolve.outputs.build_date }}"
+          SHA_TAG="sha-${GITHUB_SHA::7}"
+
+          for comp in authserver worldserver db-import; do
+            REPO="${IMAGE_PREFIX}-${comp}"
+            for tag in "${VER}-${SHORT}-${BDATE}" "${VER}-${BDATE}" "${VER}" "${SHA_TAG}" "latest"; do
+              docker tag "${REPO}:ci-candidate" "${REPO}:${tag}"
+              docker push "${REPO}:${tag}"
+            done
+          done
+
+          DIGEST="$(docker inspect --format='{{index .RepoDigests 0}}' "${IMAGE_PREFIX}-worldserver:latest")"
+          echo "Published worldserver digest: ${DIGEST}"
+          echo "digest=${DIGEST}" >> "$GITHUB_OUTPUT"
+
+      - name: Build updated versions metadata
+        shell: bash
+        env:
+          PUBLISHED_DIGEST: ${{ steps.push.outputs.digest }}
+        run: |
+          set -euo pipefail
+          jq -n \
+            --arg image "${IMAGE_PREFIX}" \
+            --arg upstream_name "azerothcore/azerothcore-wotlk" \
+            --arg upstream_version "${{ steps.resolve.outputs.version }}" \
+            --arg upstream_commit "${{ steps.resolve.outputs.commit }}" \
+            --arg short_sha "${{ steps.resolve.outputs.short_sha }}" \
+            --arg debian_version "${{ steps.inspect_image.outputs.debian_version }}" \
+            --arg base_digest "${{ steps.resolve.outputs.base_digest }}" \
+            --arg build_date "${{ steps.resolve.outputs.build_date_iso }}" \
+            --arg built_at_utc "${{ steps.resolve.outputs.created }}" \
+            --arg image_digest "${PUBLISHED_DIGEST}" \
+            --slurpfile cve cve-diff.json \
+            '{
+              image: $image,
+              upstream_name: $upstream_name,
+              upstream_version: $upstream_version,
+              upstream_commit: $upstream_commit,
+              changelog_version: ($upstream_version + "-" + $short_sha),
+              components: {
+                "AzerothCore": ($upstream_version + " (" + $short_sha + ")"),
+                "Targets": "authserver, worldserver, db-import",
+                "Base OS": ("Debian " + $debian_version + " (trixie-slim)")
+              },
+              base_image: "debian:trixie-slim",
+              base_digest: $base_digest,
+              debian_version: $debian_version,
+              build_date: $build_date,
+              built_at_utc: $built_at_utc,
+              image_digest: $image_digest,
+              fixable_critical_high: ($cve[0].fixable_critical_high // 0),
+              unfixed_cves: ($cve[0].unfixed_cves // [])
+            }' > versions-new.json
+
+      - name: Upload release metadata artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-metadata
+          path: |
+            versions-new.json
+            upstream-changes.md
+            cve-diff.json
+          retention-days: 90
+
+  update-docs:
+    name: Update docs and sync Docker Hub overviews
+    needs: build-scan-publish
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v7
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Download release metadata
+        uses: actions/download-artifact@v8
+        with:
+          name: release-metadata
+          path: .ci-meta
+
+      - name: Update versions.json, README.md, and CHANGELOG.md
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 .github/scripts/update-docs.py \
+            .ci-meta/versions-new.json \
+            .ci-meta/upstream-changes.md \
+            .ci-meta/cve-diff.json
+          rm -rf .ci-meta
+          .github/scripts/public-check.sh
+
+      - name: Commit and push updated documentation (if changed)
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -n "$(git status --porcelain versions.json README.md CHANGELOG.md)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add versions.json README.md CHANGELOG.md
+            git commit -m "chore(docs): update daily build metadata and changelog [skip ci]"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          else
+            echo "No documentation or version metadata changes to commit."
+          fi
+
+      - name: Check Docker Hub sync credentials
+        id: hub_sync
+        shell: bash
+        env:
+          DH_USER: ${{ secrets.DOCKERHUB_USERNAME }}
+          DH_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          if [ -n "$DH_USER" ] && [ -n "$DH_TOKEN" ]; then
+            DESC="$(tr -d '\r\n' < DOCKERHUB_SHORT_DESCRIPTION)"
+            if [ "${#DESC}" -gt 100 ]; then
+              echo "ERROR: DOCKERHUB_SHORT_DESCRIPTION exceeds 100 characters (${#DESC})." >&2
+              exit 1
+            fi
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+            echo "short_desc=${DESC}" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Sync Docker Hub overview (worldserver)
+        if: steps.hub_sync.outputs.enabled == 'true'
+        uses: peter-evans/dockerhub-description@v5
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          repository: dgcosenza/ac-wotlk-worldserver
+          short-description: ${{ steps.hub_sync.outputs.short_desc }}
+          readme-filepath: ./README.md
+
+      - name: Sync Docker Hub overview (authserver)
+        if: steps.hub_sync.outputs.enabled == 'true'
+        uses: peter-evans/dockerhub-description@v5
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          repository: dgcosenza/ac-wotlk-authserver
+          short-description: ${{ steps.hub_sync.outputs.short_desc }}
+          readme-filepath: ./README.md
+
+      - name: Sync Docker Hub overview (db-import)
+        if: steps.hub_sync.outputs.enabled == 'true'
+        uses: peter-evans/dockerhub-description@v5
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          repository: dgcosenza/ac-wotlk-db-import
+          short-description: ${{ steps.hub_sync.outputs.short_desc }}
+          readme-filepath: ./README.md
+
+  alert-on-status:
+    name: Manage CI failure alert issue
+    needs: [public-check, build-scan-publish, update-docs]
+    if: always() && github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Open/update or auto-close ci-failure issue
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RES_PUBLIC: ${{ needs.public-check.result }}
+          RES_BUILD: ${{ needs.build-scan-publish.result }}
+          RES_DOCS: ${{ needs.update-docs.result }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          FAILED=()
+          [ "$RES_PUBLIC" != "success" ] && FAILED+=("public-check (${RES_PUBLIC})")
+          [ "$RES_BUILD" != "success" ] && FAILED+=("build-scan-publish (${RES_BUILD})")
+          [ "$RES_DOCS" != "success" ] && FAILED+=("update-docs (${RES_DOCS})")
+
+          OPEN_ISSUE="$(gh issue list -R "$GITHUB_REPOSITORY" --label ci-failure --state open --json number --jq '.[0].number // empty')"
+
+          if [ "${#FAILED[@]}" -gt 0 ]; then
+            gh label create ci-failure --repo "$GITHUB_REPOSITORY" --color B60205 --description "Automated daily CI failure alert" --force >/dev/null 2>&1 || true
+            FAIL_LIST="$(IFS=', '; echo "${FAILED[*]}")"
+            TITLE="Daily build failed: ${FAIL_LIST}"
+            BODY="$(printf 'Automated daily pipeline failed on `%s` (%s UTC).\n\n- **Failing job(s):** %s\n- **Event:** `%s`\n- **Workflow run:** %s\n' \
+              "$GITHUB_REF_NAME" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$FAIL_LIST" "${{ github.event_name }}" "$RUN_URL")"
+            if [ -n "$OPEN_ISSUE" ]; then
+              gh issue edit "$OPEN_ISSUE" -R "$GITHUB_REPOSITORY" --title "$TITLE" --body "$BODY"
+              gh issue comment "$OPEN_ISSUE" -R "$GITHUB_REPOSITORY" --body "Latest failing run: ${RUN_URL} (${FAIL_LIST})."
+            else
+              gh issue create -R "$GITHUB_REPOSITORY" --label ci-failure --title "$TITLE" --body "$BODY"
+            fi
+          elif [ -n "$OPEN_ISSUE" ]; then
+            gh issue comment "$OPEN_ISSUE" -R "$GITHUB_REPOSITORY" --body "Daily pipeline recovered and passed on ${RUN_URL}. Closing automatically."
+            gh issue close "$OPEN_ISSUE" -R "$GITHUB_REPOSITORY"
+          else
+            echo "All jobs succeeded and no open ci-failure issue exists."
+          fi
