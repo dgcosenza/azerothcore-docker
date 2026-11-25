@@ -1,20 +1,51 @@
 {
-  "image": "dgcosenza/ac-wotlk",
+  "image": "dgcosenza/ac-wotlk-worldserver",
   "upstream_name": "azerothcore/azerothcore-wotlk",
+  "upstream_license": "GPL-2.0-only",
+  "packaging_license": "MIT",
   "upstream_version": "17.0.0-dev",
   "upstream_commit": "3a25f726ed68c5f2c361455ee9cd985fe929c3e9",
   "changelog_version": "17.0.0-dev-3a25f72",
+  "architectures": [
+    "linux/amd64"
+  ],
+  "sizes_mb": {
+    "amd64": "192.4"
+  },
+  "signed": true,
+  "slsa_provenance": true,
   "components": {
     "AzerothCore": "17.0.0-dev (3a25f72)",
     "Targets": "authserver, worldserver, db-import",
+    "MySQL Client": "Oracle MySQL 8.4 LTS",
     "Base OS": "Debian 13.8 (trixie-slim)"
   },
+  "target_digests": {
+    "authserver": "sha256:12af44c16dc32db771e4de4da57c8872dd6b2fd0eddcd09934aa5428e298d9a5",
+    "worldserver": "dgcosenza/ac-wotlk-worldserver@sha256:33124306db83be9f2d6b4191f15c8e4e90b5cb867a46a3b43e91dd9bda3b9e49",
+    "db-import": "sha256:ea4a700f0d68ebe139b4b1341376176594ab13b49df92fabc4311072965490e4"
+  },
   "base_image": "debian:trixie-slim",
-  "base_digest": "",
+  "base_digest": "sha256:8aa5a7bf5a1955bddbe7d74fcdd0b91ab30e74362a8b73af672b0481b35b44a0",
   "debian_version": "13.8",
-  "build_date": "2026-11-24",
-  "built_at_utc": "2026-11-24T00:00:00Z",
-  "image_digest": "",
+  "build_date": "2026-11-25",
+  "built_at_utc": "2026-11-25T12:24:33Z",
+  "image_digest": "dgcosenza/ac-wotlk-worldserver@sha256:33124306db83be9f2d6b4191f15c8e4e90b5cb867a46a3b43e91dd9bda3b9e49",
+  "ghcr_digest": "ghcr.io/dgcosenza/ac-wotlk-worldserver@sha256:33124306db83be9f2d6b4191f15c8e4e90b5cb867a46a3b43e91dd9bda3b9e49",
   "fixable_critical_high": 0,
-  "unfixed_cves": []
+  "unfixed_cves": [
+    "CVE-2025-69720",
+    "CVE-2026-107494",
+    "CVE-2026-119373",
+    "CVE-2026-119374",
+    "CVE-2026-119379",
+    "CVE-2026-124709",
+    "CVE-2026-16742",
+    "CVE-2026-54369",
+    "CVE-2026-76642",
+    "CVE-2026-78408",
+    "CVE-2026-78409",
+    "CVE-2026-78410",
+    "CVE-2026-9538"
+  ]
 }

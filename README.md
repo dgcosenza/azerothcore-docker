@@ -40,9 +40,15 @@ Source-built **AzerothCore WotLK** container images (`authserver`, `worldserver`
 | --- | --- |
 | AzerothCore | `17.0.0-dev (3a25f72)` |
 | Targets | `authserver, worldserver, db-import` |
+| MySQL Client | `Oracle MySQL 8.4 LTS` |
 | Base OS | `Debian 13.8 (trixie-slim)` |
-| Last verified build (UTC) | `2026-11-24` |
-| Security gate (Trivy + Grype) | **0 fixable Critical/High** (0 upstream-unfixed) |
+| Architectures | `linux/amd64` |
+| Uncompressed size (per arch) | `amd64: 192.4 MB` |
+| Last verified build (UTC) | `2026-11-25` |
+| Published multi-arch digest | `dgcosenza/ac-wotlk-worldserver@sha256:33124306db83be9f2d6b4191f15c8e4e90b5cb867a46a3b43e91dd9bda3b9e49` |
+| GHCR mirror | `ghcr.io/dgcosenza/ac-wotlk-worldserver@sha256:33124306db83be9f2d6b4191f15c8e4e90b5cb867a46a3b43e91dd9bda3b9e49` |
+| Supply chain | Cosign OIDC signed + SPDX & CycloneDX SBOM attestations + SLSA Build L3 provenance |
+| Security gate (Trivy + Grype on SBOM) | **0 fixable Critical/High** (13 upstream-unfixed) |
 <!-- versions:end -->
 
 ---
