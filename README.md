@@ -26,7 +26,7 @@ Source-built **AzerothCore WotLK** container images (`authserver`, `worldserver`
 
 ## Overview
 
-`dgcosenza/azerothcore-docker` compiles `azerothcore/azerothcore-wotlk` `master` from source with Clang 19, CMake, Ninja, and statically linked Boost on **Debian 13 (`trixie-slim`)**, publishing three minimal runtime images with full drop-in compatibility for upstream `acore/ac-wotlk-*` deployments:
+`dgcosenza/azerothcore-docker` compiles `azerothcore/azerothcore-wotlk` `master` together with the official Lua engine module [`azerothcore/mod-ale`](https://github.com/azerothcore/mod-ale) (matching upstream `acore/ac-wotlk-*` official container builds) from source with Clang 19, `lld`, CMake, Ninja, and statically linked Boost on **Debian 13 (`trixie-slim`)**, publishing three minimal runtime images with full drop-in compatibility:
 
 - **Exact path & entrypoint parity:** Preserves `/azerothcore/entrypoint.sh`, `/azerothcore/env/dist/bin/{authserver,worldserver,dbimport}`, `/azerothcore/env/dist/{etc,data,logs,temp}`, `/azerothcore/env/ref/etc`, non-root user `acore` (UID/GID `1000:1000`), and `mysql`/`mysqladmin` clients for startup wait scripts.
 - **Hardened & CVE-gated:** Compilers and build headers stay strictly in the `build` stage; runtime images ship `tini` as PID 1, run as non-root `acore` with `no-new-privileges:true`, and enforce **0 fixable Critical/High** findings in both Trivy and Grype across all three images.

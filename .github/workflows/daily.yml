@@ -17,6 +17,10 @@ on:
         description: 'Override azerothcore/azerothcore-wotlk commit SHA (leave empty for latest master)'
         required: false
         default: ''
+      mod_ale_commit:
+        description: 'Override azerothcore/mod-ale commit SHA (leave empty for latest master)'
+        required: false
+        default: ''
 
 permissions: {}
 
@@ -97,6 +101,8 @@ jobs:
       upstream_version: ${{ steps.resolve.outputs.upstream_version }}
       upstream_commit: ${{ steps.resolve.outputs.upstream_commit }}
       short_sha: ${{ steps.resolve.outputs.short_sha }}
+      mod_ale_commit: ${{ steps.resolve.outputs.mod_ale_commit }}
+      mod_ale_short: ${{ steps.resolve.outputs.mod_ale_short }}
       debian_base: ${{ steps.resolve.outputs.debian_base }}
       base_digest: ${{ steps.resolve.outputs.base_digest }}
       build_date: ${{ steps.resolve.outputs.build_date }}
@@ -114,6 +120,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           INPUT_COMMIT: ${{ inputs.azerothcore_commit }}
+          INPUT_MOD_ALE_COMMIT: ${{ inputs.mod_ale_commit }}
         run: |
           set -euo pipefail
 
@@ -123,6 +130,13 @@ jobs:
           fi
           test "${#COMMIT}" -eq 40
           SHORT_SHA="${COMMIT:0:7}"
+
+          MOD_ALE="${INPUT_MOD_ALE_COMMIT}"
+          if [ -z "$MOD_ALE" ]; then
+            MOD_ALE="$(git ls-remote https://github.com/azerothcore/mod-ale.git refs/heads/master | awk '{print $1}')"
+          fi
+          test "${#MOD_ALE}" -eq 40
+          MOD_ALE_SHORT="${MOD_ALE:0:7}"
 
           AC_VER="$(curl -fsSL "https://raw.githubusercontent.com/azerothcore/azerothcore-wotlk/${COMMIT}/package.json" 2>/dev/null \
             | jq -r '.version // empty' || true)"
@@ -159,6 +173,8 @@ jobs:
             echo "upstream_version=${AC_VER}"
             echo "upstream_commit=${COMMIT}"
             echo "short_sha=${SHORT_SHA}"
+            echo "mod_ale_commit=${MOD_ALE}"
+            echo "mod_ale_short=${MOD_ALE_SHORT}"
             echo "debian_base=${DEBIAN_BASE}"
             echo "base_digest=${BASE_DIGEST}"
             echo "build_date=${BUILD_DATE}"
@@ -222,6 +238,7 @@ jobs:
           build-args: |
             DEBIAN_BASE=${{ needs.resolve.outputs.debian_base }}
             AZEROTHCORE_COMMIT=${{ needs.resolve.outputs.upstream_commit }}
+            MOD_ALE_COMMIT=${{ needs.resolve.outputs.mod_ale_commit }}
             AZEROTHCORE_VERSION=${{ needs.resolve.outputs.upstream_version }}
             BUILD_DATE=${{ needs.resolve.outputs.created }}
             IMAGE_REVISION=${{ github.sha }}
@@ -240,6 +257,7 @@ jobs:
           build-args: |
             DEBIAN_BASE=${{ needs.resolve.outputs.debian_base }}
             AZEROTHCORE_COMMIT=${{ needs.resolve.outputs.upstream_commit }}
+            MOD_ALE_COMMIT=${{ needs.resolve.outputs.mod_ale_commit }}
             AZEROTHCORE_VERSION=${{ needs.resolve.outputs.upstream_version }}
             BUILD_DATE=${{ needs.resolve.outputs.created }}
             IMAGE_REVISION=${{ github.sha }}
@@ -258,6 +276,7 @@ jobs:
           build-args: |
             DEBIAN_BASE=${{ needs.resolve.outputs.debian_base }}
             AZEROTHCORE_COMMIT=${{ needs.resolve.outputs.upstream_commit }}
+            MOD_ALE_COMMIT=${{ needs.resolve.outputs.mod_ale_commit }}
             AZEROTHCORE_VERSION=${{ needs.resolve.outputs.upstream_version }}
             BUILD_DATE=${{ needs.resolve.outputs.created }}
             IMAGE_REVISION=${{ github.sha }}
@@ -430,6 +449,7 @@ jobs:
           build-args: |
             DEBIAN_BASE=${{ needs.resolve.outputs.debian_base }}
             AZEROTHCORE_COMMIT=${{ needs.resolve.outputs.upstream_commit }}
+            MOD_ALE_COMMIT=${{ needs.resolve.outputs.mod_ale_commit }}
             AZEROTHCORE_VERSION=${{ needs.resolve.outputs.upstream_version }}
             BUILD_DATE=${{ needs.resolve.outputs.created }}
             IMAGE_REVISION=${{ github.sha }}
@@ -450,6 +470,7 @@ jobs:
           build-args: |
             DEBIAN_BASE=${{ needs.resolve.outputs.debian_base }}
             AZEROTHCORE_COMMIT=${{ needs.resolve.outputs.upstream_commit }}
+            MOD_ALE_COMMIT=${{ needs.resolve.outputs.mod_ale_commit }}
             AZEROTHCORE_VERSION=${{ needs.resolve.outputs.upstream_version }}
             BUILD_DATE=${{ needs.resolve.outputs.created }}
             IMAGE_REVISION=${{ github.sha }}
@@ -470,6 +491,7 @@ jobs:
           build-args: |
             DEBIAN_BASE=${{ needs.resolve.outputs.debian_base }}
             AZEROTHCORE_COMMIT=${{ needs.resolve.outputs.upstream_commit }}
+            MOD_ALE_COMMIT=${{ needs.resolve.outputs.mod_ale_commit }}
             AZEROTHCORE_VERSION=${{ needs.resolve.outputs.upstream_version }}
             BUILD_DATE=${{ needs.resolve.outputs.created }}
             IMAGE_REVISION=${{ github.sha }}
@@ -749,6 +771,8 @@ jobs:
             --arg upstream_version "${{ needs.resolve.outputs.upstream_version }}" \
             --arg upstream_commit "${{ needs.resolve.outputs.upstream_commit }}" \
             --arg short_sha "${{ needs.resolve.outputs.short_sha }}" \
+            --arg mod_ale_commit "${{ needs.resolve.outputs.mod_ale_commit }}" \
+            --arg mod_ale_short "${{ needs.resolve.outputs.mod_ale_short }}" \
             --arg debian_version "${DEBIAN_VER}" \
             --arg base_digest "${{ needs.resolve.outputs.base_digest }}" \
             --arg build_date "${{ needs.resolve.outputs.build_date_iso }}" \
@@ -766,6 +790,7 @@ jobs:
               packaging_license: "MIT",
               upstream_version: $upstream_version,
               upstream_commit: $upstream_commit,
+              mod_ale_commit: $mod_ale_commit,
               changelog_version: ($upstream_version + "-" + $short_sha),
               architectures: ["linux/amd64"],
               sizes_mb: { amd64: $amd64_mb },
@@ -773,6 +798,7 @@ jobs:
               slsa_provenance: true,
               components: {
                 "AzerothCore": ($upstream_version + " (" + $short_sha + ")"),
+                "Modules": ("mod-ale (" + $mod_ale_short + ")"),
                 "Targets": "authserver, worldserver, db-import",
                 "MySQL Client": "Oracle MySQL 8.4 LTS",
                 "Base OS": ("Debian " + $debian_version + " (trixie-slim)")

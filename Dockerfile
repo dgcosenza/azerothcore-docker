@@ -2,6 +2,7 @@
 
 ARG DEBIAN_BASE=debian:trixie-slim@sha256:8aa5a7bf5a1955bddbe7d74fcdd0b91ab30e74362a8b73af672b0481b35b44a0
 ARG AZEROTHCORE_COMMIT=3a25f726ed68c5f2c361455ee9cd985fe929c3e9
+ARG MOD_ALE_COMMIT=84b85cc55980dbf67d596f3d5cb34ded10c59102
 ARG AZEROTHCORE_VERSION=17.0.0-dev
 
 # ---- Stage 0: shared directory skeleton + GPG-verified Oracle MySQL 8.4 LTS APT repo ----
@@ -56,6 +57,7 @@ FROM skeleton AS build
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 ARG AZEROTHCORE_COMMIT
+ARG MOD_ALE_COMMIT
 ARG CTYPE="RelWithDebInfo"
 ARG CSCRIPTS="static"
 ARG CMODULES="static"
@@ -83,7 +85,14 @@ RUN set -eux; \
     cp -a /tmp/ac-src/src/. /azerothcore/src/; \
     cp -a /tmp/ac-src/modules/. /azerothcore/modules/; \
     cp -a /tmp/ac-src/.git /azerothcore/.git; \
-    rm -rf /tmp/ac-src
+    git init /tmp/mod-ale; \
+    git -C /tmp/mod-ale remote add origin https://github.com/azerothcore/mod-ale.git; \
+    git -C /tmp/mod-ale fetch --depth 1 origin "${MOD_ALE_COMMIT}"; \
+    git -C /tmp/mod-ale checkout --detach FETCH_HEAD; \
+    test "$(git -C /tmp/mod-ale rev-parse HEAD)" = "${MOD_ALE_COMMIT}"; \
+    rm -rf /tmp/mod-ale/.git; \
+    cp -a /tmp/mod-ale /azerothcore/modules/mod-ale; \
+    rm -rf /tmp/ac-src /tmp/mod-ale
 
 WORKDIR /azerothcore/build
 
@@ -111,7 +120,8 @@ RUN --mount=type=cache,target=/ccache,sharing=locked \
       -DBoost_USE_STATIC_LIBS="ON"; \
     cmake --build . --config "${CTYPE}" -j"$(nproc)"; \
     cmake --install . --config "${CTYPE}"; \
-    rm -rf /azerothcore/.git
+    rm -rf /azerothcore/.git; \
+    find /azerothcore/build -mindepth 1 -delete
 
 # ---- Stage 2: shared hardened Debian 13 runtime ----
 FROM skeleton AS runtime
@@ -149,6 +159,7 @@ FROM runtime AS authserver
 
 ARG AZEROTHCORE_VERSION
 ARG AZEROTHCORE_COMMIT
+ARG MOD_ALE_COMMIT
 ARG BUILD_DATE=unknown
 ARG IMAGE_REVISION=""
 ARG IMAGE_SOURCE="https://github.com/dgcosenza/azerothcore-docker"
@@ -180,13 +191,15 @@ LABEL org.opencontainers.image.title="AzerothCore WotLK Authserver (Debian 13)" 
       org.opencontainers.image.authors="Daniel G. Cosenza from FNX Labs" \
       org.opencontainers.image.base.name="debian:trixie-slim" \
       io.github.dgcosenza.azerothcore.component="authserver" \
-      io.github.dgcosenza.azerothcore.upstream_commit="${AZEROTHCORE_COMMIT}"
+      io.github.dgcosenza.azerothcore.upstream_commit="${AZEROTHCORE_COMMIT}" \
+      io.github.dgcosenza.azerothcore.mod_ale_commit="${MOD_ALE_COMMIT}"
 
 # ---- Target: worldserver ----
 FROM runtime AS worldserver
 
 ARG AZEROTHCORE_VERSION
 ARG AZEROTHCORE_COMMIT
+ARG MOD_ALE_COMMIT
 ARG BUILD_DATE=unknown
 ARG IMAGE_REVISION=""
 ARG IMAGE_SOURCE="https://github.com/dgcosenza/azerothcore-docker"
@@ -219,13 +232,15 @@ LABEL org.opencontainers.image.title="AzerothCore WotLK Worldserver (Debian 13)"
       org.opencontainers.image.authors="Daniel G. Cosenza from FNX Labs" \
       org.opencontainers.image.base.name="debian:trixie-slim" \
       io.github.dgcosenza.azerothcore.component="worldserver" \
-      io.github.dgcosenza.azerothcore.upstream_commit="${AZEROTHCORE_COMMIT}"
+      io.github.dgcosenza.azerothcore.upstream_commit="${AZEROTHCORE_COMMIT}" \
+      io.github.dgcosenza.azerothcore.mod_ale_commit="${MOD_ALE_COMMIT}"
 
 # ---- Target: db-import ----
 FROM runtime AS db-import
 
 ARG AZEROTHCORE_VERSION
 ARG AZEROTHCORE_COMMIT
+ARG MOD_ALE_COMMIT
 ARG BUILD_DATE=unknown
 ARG IMAGE_REVISION=""
 ARG IMAGE_SOURCE="https://github.com/dgcosenza/azerothcore-docker"
@@ -251,4 +266,5 @@ LABEL org.opencontainers.image.title="AzerothCore WotLK DB Import (Debian 13)" \
       org.opencontainers.image.authors="Daniel G. Cosenza from FNX Labs" \
       org.opencontainers.image.base.name="debian:trixie-slim" \
       io.github.dgcosenza.azerothcore.component="db-import" \
-      io.github.dgcosenza.azerothcore.upstream_commit="${AZEROTHCORE_COMMIT}"
+      io.github.dgcosenza.azerothcore.upstream_commit="${AZEROTHCORE_COMMIT}" \
+      io.github.dgcosenza.azerothcore.mod_ale_commit="${MOD_ALE_COMMIT}"

@@ -39,6 +39,12 @@ for pair in \
     ")"
   echo "${comp} probe (${PROBE_FLAG}): $(printf '%s\n' "${OUT}" | head -n 2)"
 
+  if [ "$comp" = "worldserver" ]; then
+    docker run --rm --security-opt no-new-privileges:true --entrypoint bash "$img" -c \
+      'test -f /azerothcore/env/ref/etc/modules/mod_ale.conf.dist && grep -aoq mod_ale /azerothcore/env/dist/bin/worldserver'
+    echo "worldserver mod-ale (Lua Engine) parity verified."
+  fi
+
   # Verify entrypoint seeds default .conf without overwriting pre-existing custom .conf
   TMPETC="$(mktemp -d)"
   chmod 777 "$TMPETC"
