@@ -124,26 +124,59 @@ RUN --mount=type=cache,target=/ccache,sharing=locked \
     find /azerothcore/build -mindepth 1 -delete
 
 # ---- Stage 2: shared hardened Debian 13 runtime ----
-FROM skeleton AS runtime
+FROM ${DEBIAN_BASE} AS runtime
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
+ARG TZ=Etc/UTC
 ARG USER_ID=1000
 ARG GROUP_ID=1000
 ARG DOCKER_USER=acore
 ARG DEBIAN_FRONTEND=noninteractive
 
-ENV ACORE_COMPONENT=undefined \
+ENV TZ=${TZ} \
+    AC_FORCE_CREATE_DB=1 \
+    ACORE_COMPONENT=undefined \
     PATH="/azerothcore/env/dist/bin:${PATH}"
+
+WORKDIR /azerothcore
+
+COPY --from=skeleton /etc/apt/keyrings/mysql.asc /etc/apt/keyrings/mysql.asc
+COPY --from=skeleton /etc/apt/sources.list.d/mysql.sources /etc/apt/sources.list.d/mysql.sources
 
 RUN set -eux; \
     apt-get update; \
+    apt-get -y upgrade; \
     apt-get install -y --no-install-recommends \
-      bash gettext-base libbz2-1.0 libicu76 liblzma5 libmysqlclient24 \
+      bash ca-certificates gettext-base libbz2-1.0 libicu76 liblzma5 libmysqlclient24 \
       libncurses6 libreadline8t64 libssl3t64 libzstd1 mysql-client \
-      passwd procps tini zlib1g; \
+      passwd procps tini tzdata zlib1g; \
+    ln -snf "/usr/share/zoneinfo/${TZ}" /etc/localtime; \
+    echo "${TZ}" > /etc/timezone; \
     groupadd --gid "${GROUP_ID}" "${DOCKER_USER}"; \
     useradd --uid "${USER_ID}" --gid "${GROUP_ID}" --create-home \
       --shell /bin/bash --comment 'AzerothCore service user' "${DOCKER_USER}"; \
-    chown -R "${USER_ID}:${GROUP_ID}" /azerothcore; \
+    install -d -o "${USER_ID}" -g "${GROUP_ID}" \
+      /azerothcore \
+      /azerothcore/bin \
+      /azerothcore/data \
+      /azerothcore/deps \
+      /azerothcore/env \
+      /azerothcore/env/dist \
+      /azerothcore/env/dist/bin \
+      /azerothcore/env/dist/data \
+      /azerothcore/env/dist/data/Cameras \
+      /azerothcore/env/dist/data/dbc \
+      /azerothcore/env/dist/data/maps \
+      /azerothcore/env/dist/data/mmaps \
+      /azerothcore/env/dist/data/vmaps \
+      /azerothcore/env/dist/logs \
+      /azerothcore/env/dist/temp \
+      /azerothcore/env/dist/etc \
+      /azerothcore/env/ref \
+      /azerothcore/env/ref/etc \
+      /azerothcore/modules \
+      /azerothcore/src \
+      /azerothcore/build; \
     apt-get clean; \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
