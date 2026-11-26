@@ -29,7 +29,7 @@ Source-built **AzerothCore WotLK** container images (`authserver`, `worldserver`
 `dgcosenza/azerothcore-docker` compiles `azerothcore/azerothcore-wotlk` `master` together with the official Lua engine module [`azerothcore/mod-ale`](https://github.com/azerothcore/mod-ale) (matching upstream `acore/ac-wotlk-*` official container builds) from source with Clang 19, `lld`, CMake, Ninja, and statically linked Boost on **Debian 13 (`trixie-slim`)**, publishing three minimal runtime images with full drop-in compatibility:
 
 - **Exact path & entrypoint parity:** Preserves `/azerothcore/entrypoint.sh`, `/azerothcore/env/dist/bin/{authserver,worldserver,dbimport}`, `/azerothcore/env/dist/{etc,data,logs,temp}`, `/azerothcore/env/ref/etc`, non-root user `acore` (UID/GID `1000:1000`), and `mysql`/`mysqladmin` clients for startup wait scripts.
-- **Hardened & CVE-gated (all severities with a fix):** Compilers and build headers stay strictly in the `build` stage; runtime images ship `tini` as PID 1, run as non-root `acore` with `no-new-privileges:true`, and enforce **0 fixable findings of any severity** findings in both Trivy and Grype across all three images.
+- **Hardened & CVE-gated (all severities with a fix):** Compilers and build headers stay strictly in the `build` stage; runtime images ship `tini` as PID 1, run as non-root `acore` with `no-new-privileges:true`, and enforce **0 fixable findings of any severity** in both Trivy and Grype across all three images.
 
 ---
 
@@ -163,7 +163,7 @@ gh attestation verify oci://ghcr.io/dgcosenza/ac-wotlk-worldserver:latest --owne
 ## Security
 
 - **Vulnerability scan policy (all severities with a fix):** Every CI build scans all three targets (`authserver`, `worldserver`, `db-import`) with **Trivy** (table, JSON, SARIF upload, blocking `--ignore-unfixed` gate) and **Grype** (`--only-fixed`, severity cutoff `negligible`, blocking gate), and emits **SPDX SBOM** artifacts.
-- **Current status:** **0 fixable findings of any severity** vulnerabilities across all three Debian 13 runtime images.
+- **Current status:** **0 fixable vulnerabilities of any severity** across all three Debian 13 runtime images.
 - **Non-root & minimal runtime:** Runs as `acore` (UID/GID `1000:1000`) with `tini` PID 1 and `no-new-privileges:true`; compilers (`clang`, `cmake`, `ninja`, `ccache`, `-dev` headers) are excluded from all runtime images.
 - See [`SECURITY.md`](https://github.com/dgcosenza/azerothcore-docker/blob/main/SECURITY.md).
 
