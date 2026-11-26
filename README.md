@@ -38,18 +38,25 @@ Source-built **AzerothCore WotLK** container images (`authserver`, `worldserver`
 <!-- versions:start -->
 | Component | Resolved Version |
 | --- | --- |
-| AzerothCore | `17.0.0-dev (0288e0f)` |
+| AzerothCore | `17.0.0-dev (cda3f63)` |
 | Modules | `mod-ale (84b85cc)` |
 | Targets | `authserver, worldserver, db-import` |
 | MySQL Client | `Oracle MySQL 8.4 LTS` |
 | Base OS | `Debian 13.8 (trixie-slim)` |
 | Architectures | `linux/amd64` |
-| Uncompressed size (per arch) | `amd64: 200.4 MB` |
+| Uncompressed size (per arch) | `amd64: 199.6 MB` |
 | Last verified build (UTC) | `2026-11-26` |
-| Published multi-arch digest | `dgcosenza/ac-wotlk-worldserver@sha256:a3d3fe1a78b3d89e5af498aa4f41fdc55623e5ddfef2ffab3fe5400d77cad02b` |
-| GHCR mirror | `ghcr.io/dgcosenza/ac-wotlk-worldserver@sha256:a3d3fe1a78b3d89e5af498aa4f41fdc55623e5ddfef2ffab3fe5400d77cad02b` |
+| Published multi-arch digest | `dgcosenza/ac-wotlk-worldserver@sha256:7575bc0d190d168ce7c18ce173298d58019156c369a65847602f4886272ce7b6` |
+| GHCR mirror | `ghcr.io/dgcosenza/ac-wotlk-worldserver@sha256:7575bc0d190d168ce7c18ce173298d58019156c369a65847602f4886272ce7b6` |
 | Supply chain | Cosign OIDC signed + SPDX & CycloneDX SBOM attestations + SLSA Build L3 provenance |
 | Security gate (Trivy + Grype on SBOM) | **0 fixable findings of any severity** (13 upstream-unfixed) |
+
+**Recent upstream changes:**
+- AzerothCore master advanced from 0288e0f to cda3f63.
+- b4cbbfb: fix(Scripts/TrialOfTheCrusader): Stop spike chase and spline (#28582)
+- a52dffd: fix(DB/Creature): Make Coilfang Frenzy Corpse unattackable (#28584)
+- 192690e: chore(DB): import pending files
+- cda3f63: fix(Core/Creature): Don't make rooted creatures fall on death (#28583)
 <!-- versions:end -->
 
 ---

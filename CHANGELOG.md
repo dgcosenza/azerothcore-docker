@@ -7,14 +7,19 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Mai
 ---
 <!-- changelog:auto -->
 
-## [17.0.0-dev-0288e0f] — 2026-11-26
+## [17.0.0-dev-cda3f63] — 2026-11-26
 
 ### Automated Daily Build
-- Verified components: AzerothCore `17.0.0-dev (0288e0f)`, Modules `mod-ale (84b85cc)`, Targets `authserver, worldserver, db-import`, MySQL Client `Oracle MySQL 8.4 LTS`, Base OS `Debian 13.8 (trixie-slim)`.
+- Verified components: AzerothCore `17.0.0-dev (cda3f63)`, Modules `mod-ale (84b85cc)`, Targets `authserver, worldserver, db-import`, MySQL Client `Oracle MySQL 8.4 LTS`, Base OS `Debian 13.8 (trixie-slim)`.
 - Architectures verified: `linux/amd64` (native smoke tests + Dive efficiency gate).
-- Upstream status: no new upstream release since previous build; refreshed base OS and dependencies.
+- Upstream changes:
+  - AzerothCore master advanced from 0288e0f to cda3f63.
+  - b4cbbfb: fix(Scripts/TrialOfTheCrusader): Stop spike chase and spline (#28582)
+  - a52dffd: fix(DB/Creature): Make Coilfang Frenzy Corpse unattackable (#28584)
+  - 192690e: chore(DB): import pending files
+  - cda3f63: fix(Core/Creature): Don't make rooted creatures fall on death (#28583)
 - Vulnerability gate: **0 fixable findings of any severity** in Trivy and Grype (SBOM scan) (13 upstream-unfixed).
-- Published multi-arch digest (Docker Hub + GHCR): `dgcosenza/ac-wotlk-worldserver@sha256:a3d3fe1a78b3d89e5af498aa4f41fdc55623e5ddfef2ffab3fe5400d77cad02b` (Cosign OIDC signed + SPDX/CycloneDX SBOM + SLSA L3 provenance).
+- Published multi-arch digest (Docker Hub + GHCR): `dgcosenza/ac-wotlk-worldserver@sha256:7575bc0d190d168ce7c18ce173298d58019156c369a65847602f4886272ce7b6` (Cosign OIDC signed + SPDX/CycloneDX SBOM + SLSA L3 provenance).
 ---
 
 ## [17.0.0-dev-5aa4795] — 2026-11-25
