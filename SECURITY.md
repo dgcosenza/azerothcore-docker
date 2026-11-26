@@ -9,8 +9,8 @@ Only the latest daily builds of `dgcosenza/ac-wotlk-authserver`, `dgcosenza/ac-w
 ## Automated Vulnerability Scanning
 
 Every build in GitHub Actions scans all three runtime targets (`authserver`, `worldserver`, `db-import`) with:
-- **Trivy** (`--ignore-unfixed`, severity `CRITICAL,HIGH`) blocking gate + table/JSON reports + SARIF upload to GitHub Code Scanning.
-- **Grype** (`--only-fixed`, severity cutoff `high`) blocking gate + persisted report artifacts.
+- **Trivy** (`--ignore-unfixed`, all severities `UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL`) blocking gate + table/JSON reports + SARIF upload to GitHub Code Scanning.
+- **Grype** (`--only-fixed --fail-on negligible`, all severities) blocking gate + persisted report artifacts.
 - **Syft** SPDX SBOM artifacts for all three images.
 
 ## Reporting a Vulnerability

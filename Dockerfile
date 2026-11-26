@@ -123,8 +123,8 @@ RUN --mount=type=cache,target=/ccache,sharing=locked \
     rm -rf /azerothcore/.git; \
     find /azerothcore/build -mindepth 1 -delete
 
-# ---- Stage 2: shared hardened Debian 13 runtime ----
-FROM ${DEBIAN_BASE} AS runtime
+# ---- Stage 2: fully upgraded Debian 13 runtime OS layer ----
+FROM ${DEBIAN_BASE} AS runtime-os
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 ARG TZ=Etc/UTC
@@ -132,13 +132,6 @@ ARG USER_ID=1000
 ARG GROUP_ID=1000
 ARG DOCKER_USER=acore
 ARG DEBIAN_FRONTEND=noninteractive
-
-ENV TZ=${TZ} \
-    AC_FORCE_CREATE_DB=1 \
-    ACORE_COMPONENT=undefined \
-    PATH="/azerothcore/env/dist/bin:${PATH}"
-
-WORKDIR /azerothcore
 
 COPY --from=skeleton /etc/apt/keyrings/mysql.asc /tmp/mysql.asc
 COPY --from=skeleton /etc/apt/sources.list.d/mysql.sources /tmp/mysql.sources
@@ -188,6 +181,21 @@ RUN set -eux; \
 COPY --from=build --chown=${USER_ID}:${GROUP_ID} /azerothcore/env/dist/etc/ /azerothcore/env/ref/etc/
 COPY --chown=${USER_ID}:${GROUP_ID} --chmod=0755 scripts/entrypoint.sh /azerothcore/entrypoint.sh
 
+# ---- Stage 3: clean shared runtime image (zero base-upgrade waste) ----
+FROM scratch AS runtime
+
+ARG TZ=Etc/UTC
+ARG DOCKER_USER=acore
+
+# hadolint ignore=DL3067
+COPY --from=runtime-os / /
+
+ENV TZ=${TZ} \
+    AC_FORCE_CREATE_DB=1 \
+    ACORE_COMPONENT=undefined \
+    PATH="/azerothcore/env/dist/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+WORKDIR /azerothcore
 VOLUME ["/azerothcore/env/dist/etc"]
 USER ${DOCKER_USER}
 ENTRYPOINT ["/usr/bin/tini", "--", "/usr/bin/env", "bash", "/azerothcore/entrypoint.sh"]
