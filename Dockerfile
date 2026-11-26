@@ -140,14 +140,19 @@ ENV TZ=${TZ} \
 
 WORKDIR /azerothcore
 
-COPY --from=skeleton /etc/apt/keyrings/mysql.asc /etc/apt/keyrings/mysql.asc
-COPY --from=skeleton /etc/apt/sources.list.d/mysql.sources /etc/apt/sources.list.d/mysql.sources
+COPY --from=skeleton /etc/apt/keyrings/mysql.asc /tmp/mysql.asc
+COPY --from=skeleton /etc/apt/sources.list.d/mysql.sources /tmp/mysql.sources
 
 RUN set -eux; \
     apt-get update; \
+    apt-get install -y --no-install-recommends ca-certificates; \
+    install -d -m 0755 /etc/apt/keyrings; \
+    mv /tmp/mysql.asc /etc/apt/keyrings/mysql.asc; \
+    mv /tmp/mysql.sources /etc/apt/sources.list.d/mysql.sources; \
+    apt-get update; \
     apt-get -y upgrade; \
     apt-get install -y --no-install-recommends \
-      bash ca-certificates gettext-base libbz2-1.0 libicu76 liblzma5 libmysqlclient24 \
+      bash gettext-base libbz2-1.0 libicu76 liblzma5 libmysqlclient24 \
       libncurses6 libreadline8t64 libssl3t64 libzstd1 mysql-client \
       passwd procps tini tzdata zlib1g; \
     ln -snf "/usr/share/zoneinfo/${TZ}" /etc/localtime; \
