@@ -112,6 +112,7 @@ All upstream `AC_*` configuration overrides (e.g., `AC_LOGIN_DATABASE_INFO`, `AC
 
 - **`authserver`:** `bash -c 'exec 3<>/dev/tcp/127.0.0.1/3724'`
 - **`worldserver`:** `bash -c 'exec 3<>/dev/tcp/127.0.0.1/8085'`
+- **`db-import`:** `pgrep -x dbimport` (verifies the import process is running; `--interval=10s --timeout=5s --start-period=5s --retries=3`)
 
 ---
 
