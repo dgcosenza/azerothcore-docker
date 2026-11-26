@@ -7,6 +7,22 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Mai
 ---
 <!-- changelog:auto -->
 
+## [17.0.0-dev-0288e0f] — 2026-11-26
+
+### Automated Daily Build
+- Verified components: AzerothCore `17.0.0-dev (0288e0f)`, Modules `mod-ale (84b85cc)`, Targets `authserver, worldserver, db-import`, MySQL Client `Oracle MySQL 8.4 LTS`, Base OS `Debian 13.8 (trixie-slim)`.
+- Architectures verified: `linux/amd64` (native smoke tests + Dive efficiency gate).
+- Upstream changes:
+  - AzerothCore master advanced from 5aa4795 to 0288e0f.
+  - dd0fef9: chore(DB): import pending files
+  - f43859c: fix(Scripts/Naxxramas): Correct Obedience Crystal (#28569)
+  - 7e13cdf: chore(DB): import pending files
+  - ff90128: fix(Core/Pets): Save the autocast state of temporary pets (#28561)
+- Vulnerability gate: **0 fixable findings of any severity** in Trivy and Grype (SBOM scan) (13 upstream-unfixed).
+- Published multi-arch digest (Docker Hub + GHCR): `dgcosenza/ac-wotlk-worldserver@sha256:dddc1c941517bd6307e8d4ec50f7f90afa479d1aa92243349107538f2febb4cc` (Cosign OIDC signed + SPDX/CycloneDX SBOM + SLSA L3 provenance).
+
+---
+
 ## [17.0.0-dev-5aa4795] — 2026-11-25
 
 ### Automated Daily Build

@@ -38,18 +38,25 @@ Source-built **AzerothCore WotLK** container images (`authserver`, `worldserver`
 <!-- versions:start -->
 | Component | Resolved Version |
 | --- | --- |
-| AzerothCore | `17.0.0-dev (5aa4795)` |
+| AzerothCore | `17.0.0-dev (0288e0f)` |
 | Modules | `mod-ale (84b85cc)` |
 | Targets | `authserver, worldserver, db-import` |
 | MySQL Client | `Oracle MySQL 8.4 LTS` |
 | Base OS | `Debian 13.8 (trixie-slim)` |
 | Architectures | `linux/amd64` |
-| Uncompressed size (per arch) | `amd64: 200.3 MB` |
-| Last verified build (UTC) | `2026-11-25` |
-| Published multi-arch digest | `dgcosenza/ac-wotlk-worldserver@sha256:5dc05b7333cb3d1c8121639bf05d393a2c15601177207e7b702989f4b172c204` |
-| GHCR mirror | `ghcr.io/dgcosenza/ac-wotlk-worldserver@sha256:5dc05b7333cb3d1c8121639bf05d393a2c15601177207e7b702989f4b172c204` |
+| Uncompressed size (per arch) | `amd64: 200.4 MB` |
+| Last verified build (UTC) | `2026-11-26` |
+| Published multi-arch digest | `dgcosenza/ac-wotlk-worldserver@sha256:dddc1c941517bd6307e8d4ec50f7f90afa479d1aa92243349107538f2febb4cc` |
+| GHCR mirror | `ghcr.io/dgcosenza/ac-wotlk-worldserver@sha256:dddc1c941517bd6307e8d4ec50f7f90afa479d1aa92243349107538f2febb4cc` |
 | Supply chain | Cosign OIDC signed + SPDX & CycloneDX SBOM attestations + SLSA Build L3 provenance |
 | Security gate (Trivy + Grype on SBOM) | **0 fixable findings of any severity** (13 upstream-unfixed) |
+
+**Recent upstream changes:**
+- AzerothCore master advanced from 5aa4795 to 0288e0f.
+- dd0fef9: chore(DB): import pending files
+- f43859c: fix(Scripts/Naxxramas): Correct Obedience Crystal (#28569)
+- 7e13cdf: chore(DB): import pending files
+- ff90128: fix(Core/Pets): Save the autocast state of temporary pets (#28561)
 <!-- versions:end -->
 
 ---
