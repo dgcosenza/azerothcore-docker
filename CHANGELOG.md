@@ -19,8 +19,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Mai
   - 7e13cdf: chore(DB): import pending files
   - ff90128: fix(Core/Pets): Save the autocast state of temporary pets (#28561)
 - Vulnerability gate: **0 fixable findings of any severity** in Trivy and Grype (SBOM scan) (13 upstream-unfixed).
-- Published multi-arch digest (Docker Hub + GHCR): `dgcosenza/ac-wotlk-worldserver@sha256:dddc1c941517bd6307e8d4ec50f7f90afa479d1aa92243349107538f2febb4cc` (Cosign OIDC signed + SPDX/CycloneDX SBOM + SLSA L3 provenance).
-
+- Published multi-arch digest (Docker Hub + GHCR): `dgcosenza/ac-wotlk-worldserver@sha256:7567ad5ed0f3e2fb6a087b99370c708f08540e0fe8c612804156ba052092e2cd` (Cosign OIDC signed + SPDX/CycloneDX SBOM + SLSA L3 provenance).
 ---
 
 ## [17.0.0-dev-5aa4795] — 2026-11-25

@@ -46,8 +46,8 @@ Source-built **AzerothCore WotLK** container images (`authserver`, `worldserver`
 | Architectures | `linux/amd64` |
 | Uncompressed size (per arch) | `amd64: 200.4 MB` |
 | Last verified build (UTC) | `2026-11-26` |
-| Published multi-arch digest | `dgcosenza/ac-wotlk-worldserver@sha256:dddc1c941517bd6307e8d4ec50f7f90afa479d1aa92243349107538f2febb4cc` |
-| GHCR mirror | `ghcr.io/dgcosenza/ac-wotlk-worldserver@sha256:dddc1c941517bd6307e8d4ec50f7f90afa479d1aa92243349107538f2febb4cc` |
+| Published multi-arch digest | `dgcosenza/ac-wotlk-worldserver@sha256:7567ad5ed0f3e2fb6a087b99370c708f08540e0fe8c612804156ba052092e2cd` |
+| GHCR mirror | `ghcr.io/dgcosenza/ac-wotlk-worldserver@sha256:7567ad5ed0f3e2fb6a087b99370c708f08540e0fe8c612804156ba052092e2cd` |
 | Supply chain | Cosign OIDC signed + SPDX & CycloneDX SBOM attestations + SLSA Build L3 provenance |
 | Security gate (Trivy + Grype on SBOM) | **0 fixable findings of any severity** (13 upstream-unfixed) |
 
