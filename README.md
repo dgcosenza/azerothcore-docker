@@ -46,17 +46,10 @@ Source-built **AzerothCore WotLK** container images (`authserver`, `worldserver`
 | Architectures | `linux/amd64` |
 | Uncompressed size (per arch) | `amd64: 200.4 MB` |
 | Last verified build (UTC) | `2026-11-26` |
-| Published multi-arch digest | `dgcosenza/ac-wotlk-worldserver@sha256:7567ad5ed0f3e2fb6a087b99370c708f08540e0fe8c612804156ba052092e2cd` |
-| GHCR mirror | `ghcr.io/dgcosenza/ac-wotlk-worldserver@sha256:7567ad5ed0f3e2fb6a087b99370c708f08540e0fe8c612804156ba052092e2cd` |
+| Published multi-arch digest | `dgcosenza/ac-wotlk-worldserver@sha256:a3d3fe1a78b3d89e5af498aa4f41fdc55623e5ddfef2ffab3fe5400d77cad02b` |
+| GHCR mirror | `ghcr.io/dgcosenza/ac-wotlk-worldserver@sha256:a3d3fe1a78b3d89e5af498aa4f41fdc55623e5ddfef2ffab3fe5400d77cad02b` |
 | Supply chain | Cosign OIDC signed + SPDX & CycloneDX SBOM attestations + SLSA Build L3 provenance |
 | Security gate (Trivy + Grype on SBOM) | **0 fixable findings of any severity** (13 upstream-unfixed) |
-
-**Recent upstream changes:**
-- AzerothCore master advanced from 5aa4795 to 0288e0f.
-- dd0fef9: chore(DB): import pending files
-- f43859c: fix(Scripts/Naxxramas): Correct Obedience Crystal (#28569)
-- 7e13cdf: chore(DB): import pending files
-- ff90128: fix(Core/Pets): Save the autocast state of temporary pets (#28561)
 <!-- versions:end -->
 
 ---
