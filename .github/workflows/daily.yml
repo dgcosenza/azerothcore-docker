@@ -351,7 +351,7 @@ jobs:
             syft "docker:${IMG}" -o "spdx-json=sbom-${t}-${ARCH}.spdx.json"
             syft "docker:${IMG}" -o "cyclonedx-json=sbom-${t}-${ARCH}.cdx.json"
             echo "=== Grype SBOM hard gate: ${t} (${ARCH}) ==="
-            grype "sbom:sbom-${t}-${ARCH}.spdx.json" --only-fixed --fail-on high -o table | tee "grype-report-${t}-${ARCH}.txt"
+            grype "sbom:sbom-${t}-${ARCH}.spdx.json" --only-fixed --fail-on negligible -o table | tee "grype-report-${t}-${ARCH}.txt"
           done
 
       - name: Scan worldserver with Trivy — informational table & JSON (${{ matrix.arch }})
@@ -360,7 +360,7 @@ jobs:
           image-ref: '${{ env.IMAGE_PREFIX }}-worldserver:ci-candidate-${{ matrix.arch }}'
           format: 'table'
           vuln-type: 'os,library'
-          severity: 'CRITICAL,HIGH'
+          severity: 'UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL'
           exit-code: '0'
           output: 'trivy-report-${{ matrix.arch }}.txt'
 
@@ -370,7 +370,7 @@ jobs:
           image-ref: '${{ env.IMAGE_PREFIX }}-worldserver:ci-candidate-${{ matrix.arch }}'
           format: 'json'
           vuln-type: 'os,library'
-          severity: 'CRITICAL,HIGH'
+          severity: 'UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL'
           exit-code: '0'
           output: 'trivy-report-${{ matrix.arch }}.json'
 
@@ -384,7 +384,7 @@ jobs:
           image-ref: '${{ env.IMAGE_PREFIX }}-worldserver:ci-candidate-${{ matrix.arch }}'
           format: 'sarif'
           vuln-type: 'os,library'
-          severity: 'CRITICAL,HIGH'
+          severity: 'UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL'
           ignore-unfixed: true
           output: 'trivy-results-${{ matrix.arch }}.sarif'
           exit-code: '0'
@@ -402,7 +402,7 @@ jobs:
           image-ref: '${{ env.IMAGE_PREFIX }}-authserver:ci-candidate-${{ matrix.arch }}'
           format: 'table'
           vuln-type: 'os,library'
-          severity: 'CRITICAL,HIGH'
+          severity: 'UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL'
           ignore-unfixed: true
           exit-code: '1'
 
@@ -412,7 +412,7 @@ jobs:
           image-ref: '${{ env.IMAGE_PREFIX }}-worldserver:ci-candidate-${{ matrix.arch }}'
           format: 'table'
           vuln-type: 'os,library'
-          severity: 'CRITICAL,HIGH'
+          severity: 'UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL'
           ignore-unfixed: true
           exit-code: '1'
 
@@ -422,7 +422,7 @@ jobs:
           image-ref: '${{ env.IMAGE_PREFIX }}-db-import:ci-candidate-${{ matrix.arch }}'
           format: 'table'
           vuln-type: 'os,library'
-          severity: 'CRITICAL,HIGH'
+          severity: 'UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL'
           ignore-unfixed: true
           exit-code: '1'
 

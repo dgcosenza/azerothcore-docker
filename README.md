@@ -29,7 +29,7 @@ Source-built **AzerothCore WotLK** container images (`authserver`, `worldserver`
 `dgcosenza/azerothcore-docker` compiles `azerothcore/azerothcore-wotlk` `master` together with the official Lua engine module [`azerothcore/mod-ale`](https://github.com/azerothcore/mod-ale) (matching upstream `acore/ac-wotlk-*` official container builds) from source with Clang 19, `lld`, CMake, Ninja, and statically linked Boost on **Debian 13 (`trixie-slim`)**, publishing three minimal runtime images with full drop-in compatibility:
 
 - **Exact path & entrypoint parity:** Preserves `/azerothcore/entrypoint.sh`, `/azerothcore/env/dist/bin/{authserver,worldserver,dbimport}`, `/azerothcore/env/dist/{etc,data,logs,temp}`, `/azerothcore/env/ref/etc`, non-root user `acore` (UID/GID `1000:1000`), and `mysql`/`mysqladmin` clients for startup wait scripts.
-- **Hardened & CVE-gated:** Compilers and build headers stay strictly in the `build` stage; runtime images ship `tini` as PID 1, run as non-root `acore` with `no-new-privileges:true`, and enforce **0 fixable Critical/High** findings in both Trivy and Grype across all three images.
+- **Hardened & CVE-gated (all severities with a fix):** Compilers and build headers stay strictly in the `build` stage; runtime images ship `tini` as PID 1, run as non-root `acore` with `no-new-privileges:true`, and enforce **0 fixable findings of any severity** findings in both Trivy and Grype across all three images.
 
 ---
 
@@ -49,7 +49,7 @@ Source-built **AzerothCore WotLK** container images (`authserver`, `worldserver`
 | Published multi-arch digest | `dgcosenza/ac-wotlk-worldserver@sha256:5dc05b7333cb3d1c8121639bf05d393a2c15601177207e7b702989f4b172c204` |
 | GHCR mirror | `ghcr.io/dgcosenza/ac-wotlk-worldserver@sha256:5dc05b7333cb3d1c8121639bf05d393a2c15601177207e7b702989f4b172c204` |
 | Supply chain | Cosign OIDC signed + SPDX & CycloneDX SBOM attestations + SLSA Build L3 provenance |
-| Security gate (Trivy + Grype on SBOM) | **0 fixable Critical/High** (13 upstream-unfixed) |
+| Security gate (Trivy + Grype on SBOM) | **0 fixable findings of any severity** (13 upstream-unfixed) |
 <!-- versions:end -->
 
 ---
@@ -159,8 +159,8 @@ gh attestation verify oci://ghcr.io/dgcosenza/ac-wotlk-worldserver:latest --owne
 
 ## Security
 
-- **Vulnerability scan policy:** Every CI build scans all three targets (`authserver`, `worldserver`, `db-import`) with **Trivy** (table, JSON, SARIF upload, blocking `--ignore-unfixed` gate) and **Grype** (`--only-fixed`, severity cutoff `high`, blocking gate), and emits **SPDX SBOM** artifacts.
-- **Current status:** **0 fixable Critical/High** vulnerabilities across all three Debian 13 runtime images.
+- **Vulnerability scan policy (all severities with a fix):** Every CI build scans all three targets (`authserver`, `worldserver`, `db-import`) with **Trivy** (table, JSON, SARIF upload, blocking `--ignore-unfixed` gate) and **Grype** (`--only-fixed`, severity cutoff `negligible`, blocking gate), and emits **SPDX SBOM** artifacts.
+- **Current status:** **0 fixable findings of any severity** vulnerabilities across all three Debian 13 runtime images.
 - **Non-root & minimal runtime:** Runs as `acore` (UID/GID `1000:1000`) with `tini` PID 1 and `no-new-privileges:true`; compilers (`clang`, `cmake`, `ninja`, `ccache`, `-dev` headers) are excluded from all runtime images.
 - See [`SECURITY.md`](https://github.com/dgcosenza/azerothcore-docker/blob/main/SECURITY.md).
 
@@ -197,7 +197,7 @@ done
 
 1. **Upstream check:** Resolves the latest `azerothcore/azerothcore-wotlk` `master` commit and `debian:trixie-slim` digest, diffs against `versions.json`, fetches recent commit summaries via the authenticated GitHub API, and emits `upstream-changes.md`.
 2. **Cached / scheduled no-cache rebuild:** Builds all three targets (`authserver`, `worldserver`, `db-import`) with `--no-cache` on scheduled daily runs and Buildx/ccache acceleration on push/PR builds, upgrading Debian 13 packages and emitting **SPDX SBOM** and provenance artifacts.
-3. **Vulnerability fix and gate:** Scans all three targets with **Trivy** (table, JSON, SARIF upload, blocking `--ignore-unfixed` gate) and **Grype** (blocking `--only-fixed` gate, severity cutoff `high`), diffs CVEs against the previous scan, and retains reports for 90 days.
+3. **Vulnerability fix and gate:** Scans all three targets with **Trivy** (table, JSON, SARIF upload, blocking `--ignore-unfixed` gate) and **Grype** (blocking `--only-fixed` gate, severity cutoff `negligible`), diffs CVEs against the previous scan, and retains reports for 90 days.
 4. **Smoke test:** Runs [`tests/smoke.sh`](https://github.com/dgcosenza/azerothcore-docker/blob/main/tests/smoke.sh) across all three targets (UID/GID `1000`, `tini` PID 1, `mysql`/`mysqladmin`, `ldd` linkage, `--version`/`--help`, non-clobbering `entrypoint.sh` config seeding, negative TCP healthcheck).
 5. **Publish:** On non-PR builds when Docker Hub secrets are configured, pushes matching tags to `dgcosenza/ac-wotlk-authserver`, `dgcosenza/ac-wotlk-worldserver`, and `dgcosenza/ac-wotlk-db-import` and records the worldserver digest.
 6. **Automated documentation sync:** Commits updated `versions.json`, the README `Current Versions` block, and a dated `CHANGELOG.md` entry via `github-actions[bot]` with `[skip ci]` when content changes, then syncs Docker Hub descriptions for all three repositories via `peter-evans/dockerhub-description`.
