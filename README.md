@@ -119,6 +119,9 @@ All upstream `AC_*` configuration overrides (e.g., `AC_LOGIN_DATABASE_INFO`, `AC
 
 - **`authserver`:** `bash -c 'exec 3<>/dev/tcp/127.0.0.1/3724'`
 - **`worldserver`:** `bash -c 'exec 3<>/dev/tcp/127.0.0.1/8085'`
+- **`db-import`:** `pgrep -x dbimport` (verifies the import process is running; `--interval=10s --timeout=5s --start-period=5s --retries=3`)
+- **Timings:** authserver `30s/10s/120s/3`, worldserver `30s/10s/300s/3` (interval/timeout/start-period/retries).
+- **CI validation:** every build starts all three targets and waits for Docker to report `status=healthy` before publishing. Because CI has no game database, the probe condition is satisfied by a small static test stub (`tests/health-stub.c`) that listens on the expected loopback port or idles under the `dbimport` process name; the Dockerfile HEALTHCHECK instruction itself is exercised unchanged. Real binaries, non-root `1000:1000`, `tini` PID 1 and library resolution are verified separately by `tests/smoke.sh`.
 
 ---
 

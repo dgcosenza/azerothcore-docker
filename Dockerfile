@@ -251,6 +251,9 @@ COPY --from=build --chown=1000:1000 /azerothcore/data /azerothcore/data
 COPY --from=build --chown=1000:1000 /azerothcore/modules /azerothcore/modules
 COPY --from=build --chown=1000:1000 /azerothcore/env/dist/bin/dbimport /azerothcore/env/dist/bin/dbimport
 
+HEALTHCHECK --interval=10s --timeout=5s --start-period=5s --retries=3 \
+    CMD ["bash", "-c", "pgrep -x dbimport >/dev/null"]
+
 CMD ["/azerothcore/env/dist/bin/dbimport"]
 
 LABEL org.opencontainers.image.title="AzerothCore WotLK DB Import (Debian 13)" \

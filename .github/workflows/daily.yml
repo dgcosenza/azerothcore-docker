@@ -310,6 +310,14 @@ jobs:
             "${IMAGE_PREFIX}-worldserver:ci-candidate-${{ matrix.arch }}" \
             "${IMAGE_PREFIX}-db-import:ci-candidate-${{ matrix.arch }}"
 
+      - name: Wait for Docker healthy on all targets (${{ matrix.arch }})
+        shell: bash
+        env:
+          ARCH: ${{ matrix.arch }}
+        run: |
+          set -euo pipefail
+          ./tests/health-wait.sh "$ARCH" "${IMAGE_PREFIX}"
+
       - name: Install verified Dive, Syft, and Grype (${{ matrix.arch }})
         shell: bash
         env:
