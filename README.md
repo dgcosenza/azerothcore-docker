@@ -56,7 +56,7 @@ Source-built **AzerothCore WotLK** container images (`authserver`, `worldserver`
 <!-- versions:start -->
 | Component | Resolved Version |
 | --- | --- |
-| AzerothCore | `17.0.0-dev (8e27b16)` |
+| AzerothCore | `17.0.0-dev (65e5a98)` |
 | Modules | `mod-ale (a186f59)` |
 | Targets | `authserver, worldserver, db-import` |
 | MySQL Client | `Oracle MySQL 8.4 LTS` |
@@ -64,16 +64,15 @@ Source-built **AzerothCore WotLK** container images (`authserver`, `worldserver`
 | Architectures | `linux/amd64` |
 | Uncompressed size (per arch) | `amd64: 199.8 MB` |
 | Last verified build (UTC) | `2026-11-27` |
-| Published multi-arch digest | `dgcosenza/ac-wotlk-worldserver@sha256:37583c6c705520a0ded63ab4963889aedf0b176dc7e613be1019b896733992d4` |
-| GHCR mirror | `ghcr.io/dgcosenza/ac-wotlk-worldserver@sha256:37583c6c705520a0ded63ab4963889aedf0b176dc7e613be1019b896733992d4` |
+| Published multi-arch digest | `dgcosenza/ac-wotlk-worldserver@sha256:f27569b557603516b824acbe2950a374aab72c22b889aee7c46c319046279ce9` |
+| GHCR mirror | `ghcr.io/dgcosenza/ac-wotlk-worldserver@sha256:f27569b557603516b824acbe2950a374aab72c22b889aee7c46c319046279ce9` |
 | Supply chain | Cosign OIDC signed + SPDX & CycloneDX SBOM attestations + SLSA Build L3 provenance |
 | Security gate (Trivy + Grype on SBOM) | **0 fixable findings of any severity** (13 upstream-unfixed) |
 
 **Recent upstream changes:**
-- AzerothCore master advanced from cda3f63 to 8e27b16.
-- 4a0701f: fix(Core/Spells): Port SpellHistory to stop cooldown timer overflows (#28578)
-- 354540a: chore(DB): import pending files
-- 8e27b16: fix(Scripts/VoA): Enforce Wintergrasp lockdown (#28575)
+- AzerothCore master advanced from 8e27b16 to 65e5a98.
+- 8fc3b09: fix(Core/Pet): Avoid cooldowns on failed casts (#27170)
+- 65e5a98: feat(CI): List failed e2e tests on the run summary (#28585)
 <!-- versions:end -->
 
 ---
