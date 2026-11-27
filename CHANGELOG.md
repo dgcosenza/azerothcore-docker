@@ -7,15 +7,18 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Mai
 ---
 <!-- changelog:auto -->
 
-## [17.0.0-dev-cda3f63] — 2026-11-27
+## [17.0.0-dev-8e27b16] — 2026-11-27
 
 ### Automated Daily Build
-- Verified components: AzerothCore `17.0.0-dev (cda3f63)`, Modules `mod-ale (84b85cc)`, Targets `authserver, worldserver, db-import`, MySQL Client `Oracle MySQL 8.4 LTS`, Base OS `Debian 13.8 (trixie-slim)`.
+- Verified components: AzerothCore `17.0.0-dev (8e27b16)`, Modules `mod-ale (a186f59)`, Targets `authserver, worldserver, db-import`, MySQL Client `Oracle MySQL 8.4 LTS`, Base OS `Debian 13.8 (trixie-slim)`.
 - Architectures verified: `linux/amd64` (native smoke tests + Dive efficiency gate).
-- Upstream status: no new upstream release since previous build; refreshed base OS and dependencies.
+- Upstream changes:
+  - AzerothCore master advanced from cda3f63 to 8e27b16.
+  - 4a0701f: fix(Core/Spells): Port SpellHistory to stop cooldown timer overflows (#28578)
+  - 354540a: chore(DB): import pending files
+  - 8e27b16: fix(Scripts/VoA): Enforce Wintergrasp lockdown (#28575)
 - Vulnerability gate: **0 fixable findings of any severity** in Trivy and Grype (SBOM scan) (13 upstream-unfixed).
-- Published multi-arch digest (Docker Hub + GHCR): `dgcosenza/ac-wotlk-worldserver@sha256:03582fd29e3ae2585745f00a47364e6f1b2073f8e55f915148f83b59536fceea` (Cosign OIDC signed + SPDX/CycloneDX SBOM + SLSA L3 provenance).
-
+- Published multi-arch digest (Docker Hub + GHCR): `dgcosenza/ac-wotlk-worldserver@sha256:37583c6c705520a0ded63ab4963889aedf0b176dc7e613be1019b896733992d4` (Cosign OIDC signed + SPDX/CycloneDX SBOM + SLSA L3 provenance).
 ---
 
 ## [17.0.0-dev-cda3f63] — 2026-11-26

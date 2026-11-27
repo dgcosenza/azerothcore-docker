@@ -39,18 +39,24 @@ Source-built **AzerothCore WotLK** container images (`authserver`, `worldserver`
 <!-- versions:start -->
 | Component | Resolved Version |
 | --- | --- |
-| AzerothCore | `17.0.0-dev (cda3f63)` |
-| Modules | `mod-ale (84b85cc)` |
+| AzerothCore | `17.0.0-dev (8e27b16)` |
+| Modules | `mod-ale (a186f59)` |
 | Targets | `authserver, worldserver, db-import` |
 | MySQL Client | `Oracle MySQL 8.4 LTS` |
 | Base OS | `Debian 13.8 (trixie-slim)` |
 | Architectures | `linux/amd64` |
-| Uncompressed size (per arch) | `amd64: 199.6 MB` |
+| Uncompressed size (per arch) | `amd64: 199.8 MB` |
 | Last verified build (UTC) | `2026-11-27` |
-| Published multi-arch digest | `dgcosenza/ac-wotlk-worldserver@sha256:03582fd29e3ae2585745f00a47364e6f1b2073f8e55f915148f83b59536fceea` |
-| GHCR mirror | `ghcr.io/dgcosenza/ac-wotlk-worldserver@sha256:03582fd29e3ae2585745f00a47364e6f1b2073f8e55f915148f83b59536fceea` |
+| Published multi-arch digest | `dgcosenza/ac-wotlk-worldserver@sha256:37583c6c705520a0ded63ab4963889aedf0b176dc7e613be1019b896733992d4` |
+| GHCR mirror | `ghcr.io/dgcosenza/ac-wotlk-worldserver@sha256:37583c6c705520a0ded63ab4963889aedf0b176dc7e613be1019b896733992d4` |
 | Supply chain | Cosign OIDC signed + SPDX & CycloneDX SBOM attestations + SLSA Build L3 provenance |
 | Security gate (Trivy + Grype on SBOM) | **0 fixable findings of any severity** (13 upstream-unfixed) |
+
+**Recent upstream changes:**
+- AzerothCore master advanced from cda3f63 to 8e27b16.
+- 4a0701f: fix(Core/Spells): Port SpellHistory to stop cooldown timer overflows (#28578)
+- 354540a: chore(DB): import pending files
+- 8e27b16: fix(Scripts/VoA): Enforce Wintergrasp lockdown (#28575)
 <!-- versions:end -->
 
 ---
