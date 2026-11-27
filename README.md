@@ -7,6 +7,7 @@
 [![SLSA Level 3](https://img.shields.io/badge/SLSA-Level%203-brightgreen.svg)](#supply-chain-verification)
 [![Architectures](https://img.shields.io/badge/arch-amd64-informational.svg)](#supported-architectures)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/dgcosenza/azerothcore-docker/badge)](https://scorecard.dev/viewer/?uri=github.com/dgcosenza/azerothcore-docker)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/17155/badge)](https://www.bestpractices.dev/projects/17155)
 [![Docker Pulls](https://img.shields.io/docker/pulls/dgcosenza/ac-wotlk-worldserver)](https://hub.docker.com/r/dgcosenza/ac-wotlk-worldserver)
 [![Docker Image Size](https://img.shields.io/docker/image-size/dgcosenza/ac-wotlk-worldserver/latest)](https://hub.docker.com/r/dgcosenza/ac-wotlk-worldserver)
 [![Latest Release](https://img.shields.io/github/v/release/dgcosenza/azerothcore-docker?label=version)](https://github.com/dgcosenza/azerothcore-docker/releases)
