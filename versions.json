@@ -4,36 +4,36 @@
   "upstream_license": "GPL-2.0-only",
   "packaging_license": "MIT",
   "upstream_version": "17.0.0-dev",
-  "upstream_commit": "65e5a9879480cd34eb5b1bede11a63c7256858aa",
+  "upstream_commit": "0456e5c09e8d84a8174f860d494789f52d3d6f8e",
   "mod_ale_commit": "a186f5997d953b6ccaf7861d6ab4472db4ef8d52",
-  "changelog_version": "17.0.0-dev-65e5a98",
+  "changelog_version": "17.0.0-dev-0456e5c",
   "architectures": [
     "linux/amd64"
   ],
   "sizes_mb": {
-    "amd64": "199.8"
+    "amd64": "199.9"
   },
   "signed": true,
   "slsa_provenance": true,
   "components": {
-    "AzerothCore": "17.0.0-dev (65e5a98)",
+    "AzerothCore": "17.0.0-dev (0456e5c)",
     "Modules": "mod-ale (a186f59)",
     "Targets": "authserver, worldserver, db-import",
     "MySQL Client": "Oracle MySQL 8.4 LTS",
     "Base OS": "Debian 13.8 (trixie-slim)"
   },
   "target_digests": {
-    "authserver": "sha256:36e198b8acc7c0292a1c3a797b245668805966ec8981adcdbcb7208a2fed16b6",
-    "worldserver": "dgcosenza/ac-wotlk-worldserver@sha256:f27569b557603516b824acbe2950a374aab72c22b889aee7c46c319046279ce9",
-    "db-import": "sha256:dabea1b8acfa7a1ae4d678ef0e330d95ce81daed2e380757b09555066057fafe"
+    "authserver": "sha256:98aa88b29a2f42d168a3ecc741055ab8a8886addd8323f4704095ac67d5316d6",
+    "worldserver": "dgcosenza/ac-wotlk-worldserver@sha256:adf93462d220db4438bd0d9a3a400703a05e7bb0da7aef25956a57cfd29a7d65",
+    "db-import": "sha256:825d9a66507895a7bcc62e0953d00aa8e7deb61c37380ac061026f66eaca78e6"
   },
   "base_image": "debian:trixie-slim",
   "base_digest": "sha256:8aa5a7bf5a1955bddbe7d74fcdd0b91ab30e74362a8b73af672b0481b35b44a0",
   "debian_version": "13.8",
-  "build_date": "2026-11-27",
-  "built_at_utc": "2026-11-27T22:04:33Z",
-  "image_digest": "dgcosenza/ac-wotlk-worldserver@sha256:f27569b557603516b824acbe2950a374aab72c22b889aee7c46c319046279ce9",
-  "ghcr_digest": "ghcr.io/dgcosenza/ac-wotlk-worldserver@sha256:f27569b557603516b824acbe2950a374aab72c22b889aee7c46c319046279ce9",
+  "build_date": "2026-11-28",
+  "built_at_utc": "2026-11-28T14:24:58Z",
+  "image_digest": "dgcosenza/ac-wotlk-worldserver@sha256:adf93462d220db4438bd0d9a3a400703a05e7bb0da7aef25956a57cfd29a7d65",
+  "ghcr_digest": "ghcr.io/dgcosenza/ac-wotlk-worldserver@sha256:adf93462d220db4438bd0d9a3a400703a05e7bb0da7aef25956a57cfd29a7d65",
   "fixable_critical_high": 0,
   "unfixed_cves": [
     "CVE-2025-69720",

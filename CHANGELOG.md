@@ -7,6 +7,22 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Mai
 ---
 <!-- changelog:auto -->
 
+## [17.0.0-dev-0456e5c] — 2026-11-28
+
+### Automated Daily Build
+- Verified components: AzerothCore `17.0.0-dev (0456e5c)`, Modules `mod-ale (a186f59)`, Targets `authserver, worldserver, db-import`, MySQL Client `Oracle MySQL 8.4 LTS`, Base OS `Debian 13.8 (trixie-slim)`.
+- Architectures verified: `linux/amd64` (native smoke tests + Dive efficiency gate).
+- Upstream changes:
+  - AzerothCore master advanced from 65e5a98 to 0456e5c.
+  - 57d7b10: fix(Core/Vehicle): Keep a player vehicle's passengers across a map change (#28590)
+  - 54dc2f3: fix(Core/Spells): Fix autocast conditions and stacking for hunter pet abilities (#27422)
+  - 14e95f0: fix(Core/Guild): Show items put in a new bank tab (#28586)
+  - 5b770cc: fix(Core/Petitions): Keep unsigned charters signable after restart (#28589)
+- Vulnerability gate: **0 fixable findings of any severity** in Trivy and Grype (SBOM scan) (13 upstream-unfixed).
+- Published multi-arch digest (Docker Hub + GHCR): `dgcosenza/ac-wotlk-worldserver@sha256:adf93462d220db4438bd0d9a3a400703a05e7bb0da7aef25956a57cfd29a7d65` (Cosign OIDC signed + SPDX/CycloneDX SBOM + SLSA L3 provenance).
+
+---
+
 ## [17.0.0-dev-65e5a98] — 2026-11-27
 
 ### Automated Daily Build

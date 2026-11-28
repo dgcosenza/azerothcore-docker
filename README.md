@@ -56,23 +56,25 @@ Source-built **AzerothCore WotLK** container images (`authserver`, `worldserver`
 <!-- versions:start -->
 | Component | Resolved Version |
 | --- | --- |
-| AzerothCore | `17.0.0-dev (65e5a98)` |
+| AzerothCore | `17.0.0-dev (0456e5c)` |
 | Modules | `mod-ale (a186f59)` |
 | Targets | `authserver, worldserver, db-import` |
 | MySQL Client | `Oracle MySQL 8.4 LTS` |
 | Base OS | `Debian 13.8 (trixie-slim)` |
 | Architectures | `linux/amd64` |
-| Uncompressed size (per arch) | `amd64: 199.8 MB` |
-| Last verified build (UTC) | `2026-11-27` |
-| Published multi-arch digest | `dgcosenza/ac-wotlk-worldserver@sha256:f27569b557603516b824acbe2950a374aab72c22b889aee7c46c319046279ce9` |
-| GHCR mirror | `ghcr.io/dgcosenza/ac-wotlk-worldserver@sha256:f27569b557603516b824acbe2950a374aab72c22b889aee7c46c319046279ce9` |
+| Uncompressed size (per arch) | `amd64: 199.9 MB` |
+| Last verified build (UTC) | `2026-11-28` |
+| Published multi-arch digest | `dgcosenza/ac-wotlk-worldserver@sha256:adf93462d220db4438bd0d9a3a400703a05e7bb0da7aef25956a57cfd29a7d65` |
+| GHCR mirror | `ghcr.io/dgcosenza/ac-wotlk-worldserver@sha256:adf93462d220db4438bd0d9a3a400703a05e7bb0da7aef25956a57cfd29a7d65` |
 | Supply chain | Cosign OIDC signed + SPDX & CycloneDX SBOM attestations + SLSA Build L3 provenance |
 | Security gate (Trivy + Grype on SBOM) | **0 fixable findings of any severity** (13 upstream-unfixed) |
 
 **Recent upstream changes:**
-- AzerothCore master advanced from 8e27b16 to 65e5a98.
-- 8fc3b09: fix(Core/Pet): Avoid cooldowns on failed casts (#27170)
-- 65e5a98: feat(CI): List failed e2e tests on the run summary (#28585)
+- AzerothCore master advanced from 65e5a98 to 0456e5c.
+- 57d7b10: fix(Core/Vehicle): Keep a player vehicle's passengers across a map change (#28590)
+- 54dc2f3: fix(Core/Spells): Fix autocast conditions and stacking for hunter pet abilities (#27422)
+- 14e95f0: fix(Core/Guild): Show items put in a new bank tab (#28586)
+- 5b770cc: fix(Core/Petitions): Keep unsigned charters signable after restart (#28589)
 <!-- versions:end -->
 
 ---
